@@ -1,9 +1,12 @@
 import { Link, useLocation } from "wouter";
-import { Home, Library, Martini, UtensilsCrossed, Plus, Camera } from "lucide-react";
+import { Home, Library, Martini, UtensilsCrossed, Plus, Camera, Settings as SettingsIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useState } from "react";
+import DiagnosticsModal from "./diagnostics";
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   const [location] = useLocation();
+  const [showDiagnostics, setShowDiagnostics] = useState(false);
 
   const navItems = [
     { href: "/", icon: Home, label: "Home" },
@@ -14,11 +17,16 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col font-sans selection:bg-primary selection:text-primary-foreground">
+      <DiagnosticsModal open={showDiagnostics} onOpenChange={setShowDiagnostics} />
+
       {/* Mobile Header */}
       <header className="sticky top-0 z-50 glass-panel border-b border-border/40 px-6 py-4 flex items-center justify-between md:hidden">
         <h1 className="text-xl font-serif font-bold tracking-tight text-primary">My Bar AI</h1>
-        <button className="p-2 rounded-full hover:bg-white/5 active:bg-white/10 transition-colors">
-          <Camera className="w-5 h-5 text-muted-foreground" />
+        <button 
+          onClick={() => setShowDiagnostics(true)}
+          className="p-2 rounded-full hover:bg-white/5 active:bg-white/10 transition-colors"
+        >
+          <SettingsIcon className="w-5 h-5 text-muted-foreground" />
         </button>
       </header>
 
@@ -48,7 +56,15 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             ))}
           </nav>
 
-          <div className="mt-auto">
+          <div className="mt-auto space-y-4">
+             <button 
+                onClick={() => setShowDiagnostics(true)}
+                className="flex items-center gap-3 px-4 py-3 text-sm text-muted-foreground hover:text-white transition-colors w-full"
+              >
+                <SettingsIcon className="w-4 h-4" />
+                Settings & API
+             </button>
+
             <div className="glass-card p-4 rounded-xl">
               <p className="text-xs text-muted-foreground mb-2">My Collection</p>
               <div className="flex items-center justify-between">

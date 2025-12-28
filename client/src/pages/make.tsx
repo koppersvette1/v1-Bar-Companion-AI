@@ -1,36 +1,9 @@
 import { useState, useEffect } from "react";
 import { useStore } from "@/lib/store";
-import { Sparkles, GlassWater, Loader2, ChevronRight, RefreshCw, ChefHat, Wind } from "lucide-react";
+import { Sparkles, GlassWater, Loader2, ChevronRight, RefreshCw, ChefHat, Wind, Info } from "lucide-react";
 import { cn } from "@/lib/utils";
-import cocktailImage from '@assets/generated_images/classic_old_fashioned_cocktail.png';
-
-// Mock response generator
-const generateCocktail = (preferences: any) => {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve({
-        name: "Midnight Smoke",
-        description: "A moody, complex variation of a Manhattan using your smoked oak chips.",
-        image: cocktailImage,
-        ingredients: [
-          "2oz Bourbon Whiskey",
-          "1oz Sweet Vermouth",
-          "2 dashes Angostura Bitters",
-          "Oak Wood Smoke"
-        ],
-        steps: [
-          "Add bourbon, vermouth, and bitters to a mixing glass with ice.",
-          "Stir until well chilled (approx 30 seconds).",
-          "Prepare your smoker with Oak chips and fill a chilled coupe glass with smoke.",
-          "Strain the cocktail into the smoke-filled glass.",
-          "Garnish with a Luxardo cherry."
-        ],
-        tools: ["Mixing Glass", "Bar Spoon", "Strainer", "Cocktail Smoker"],
-        tips: "Use the 'Rich' setting on your smoker for maximum flavor depth."
-      });
-    }, 2500); // Fake delay
-  });
-};
+import { findMatch } from "@/lib/logic";
+import { Link } from "wouter";
 
 export default function Make() {
   const [step, setStep] = useState<'preferences' | 'generating' | 'result'>('preferences');
@@ -42,12 +15,17 @@ export default function Make() {
   });
   const [recipe, setRecipe] = useState<any>(null);
   
-  const { inventory } = useStore();
+  const { inventory, settings } = useStore();
   const hasSmoker = inventory.some(i => i.name.toLowerCase().includes('smoker'));
 
   const handleGenerate = async () => {
     setStep('generating');
-    const result = await generateCocktail(preferences);
+    
+    // Simulate API delay
+    await new Promise(r => setTimeout(r, 2000));
+    
+    // Use fallback logic for now (later can swap with OpenAI)
+    const result = findMatch(inventory, preferences);
     setRecipe(result);
     setStep('result');
   };
@@ -108,6 +86,13 @@ export default function Make() {
                   <p className="text-sm text-muted-foreground">{recipe.tips}</p>
                 </div>
              )}
+
+             {!settings.useOpenAi && (
+               <div className="p-4 rounded-xl bg-white/5 border border-white/10 flex gap-3 items-start">
+                  <Info className="w-4 h-4 text-muted-foreground mt-0.5" />
+                  <p className="text-xs text-muted-foreground">Running in local demo mode. Add an OpenAI key in settings for unlimited AI recipes.</p>
+               </div>
+             )}
           </div>
 
           <div className="md:col-span-2 glass-card p-8 rounded-2xl">
@@ -129,6 +114,19 @@ export default function Make() {
           </div>
         </div>
       </div>
+    );
+  }
+
+  // Empty state handling
+  if (inventory.length === 0) {
+    return (
+       <div className="h-full flex flex-col items-center justify-center text-center p-8 space-y-6">
+         <h2 className="text-2xl font-serif font-bold text-white">Your bar is empty.</h2>
+         <p className="text-muted-foreground">We need ingredients to make drinks.</p>
+         <Link href="/inventory">
+           <a className="px-6 py-3 bg-primary text-primary-foreground rounded-lg font-bold">Go to Inventory</a>
+         </Link>
+       </div>
     );
   }
 

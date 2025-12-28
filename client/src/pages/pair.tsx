@@ -1,18 +1,21 @@
 import { useState } from "react";
-import { Utensils, Search, ArrowRight } from "lucide-react";
+import { Utensils, Search, ArrowRight, Loader2 } from "lucide-react";
 import cocktailImage from '@assets/generated_images/classic_old_fashioned_cocktail.png';
+import { getPairing } from "@/lib/logic";
 
 export default function Pair() {
   const [mode, setMode] = useState<'food-to-drink' | 'drink-to-food'>('food-to-drink');
   const [input, setInput] = useState("");
   const [result, setResult] = useState<any>(null);
+  const [loading, setLoading] = useState(false);
 
-  const handlePair = () => {
-    setResult({
-      match: "Spicy Tuna Tartare",
-      description: "The richness of the tuna needs something with acid to cut through, while the spice pairs beautifully with the ginger notes in the cocktail.",
-      image: cocktailImage // Placeholder
-    });
+  const handlePair = async () => {
+    if(!input) return;
+    setLoading(true);
+    await new Promise(r => setTimeout(r, 1500)); // Fake API delay
+    const match = getPairing(input, mode);
+    setResult(match);
+    setLoading(false);
   };
 
   return (
@@ -24,13 +27,13 @@ export default function Pair() {
 
       <div className="glass-card p-1 rounded-full bg-black/20 backdrop-blur-md flex mx-auto max-w-md w-full">
         <button 
-          onClick={() => { setMode('food-to-drink'); setResult(null); }}
+          onClick={() => { setMode('food-to-drink'); setResult(null); setInput(""); }}
           className={`flex-1 py-2 rounded-full text-sm font-bold transition-all ${mode === 'food-to-drink' ? 'bg-primary text-primary-foreground shadow-lg' : 'text-muted-foreground hover:text-white'}`}
         >
           I have Food
         </button>
         <button 
-           onClick={() => { setMode('drink-to-food'); setResult(null); }}
+           onClick={() => { setMode('drink-to-food'); setResult(null); setInput(""); }}
            className={`flex-1 py-2 rounded-full text-sm font-bold transition-all ${mode === 'drink-to-food' ? 'bg-primary text-primary-foreground shadow-lg' : 'text-muted-foreground hover:text-white'}`}
         >
           I have a Drink
@@ -50,12 +53,14 @@ export default function Pair() {
                 onChange={(e) => setInput(e.target.value)}
                 placeholder={mode === 'food-to-drink' ? "e.g., Spicy Tacos, Steak, Chocolate Cake..." : "e.g., Old Fashioned, Margarita..."}
                 className="w-full bg-card/50 border border-white/10 rounded-2xl p-6 text-xl text-center text-white placeholder:text-muted-foreground/30 focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all shadow-xl"
+                onKeyDown={(e) => e.key === 'Enter' && handlePair()}
               />
               <button 
                 onClick={handlePair}
-                className="absolute right-3 top-1/2 -translate-y-1/2 p-3 bg-primary text-primary-foreground rounded-xl hover:bg-primary/90 transition-colors"
+                disabled={!input || loading}
+                className="absolute right-3 top-1/2 -translate-y-1/2 p-3 bg-primary text-primary-foreground rounded-xl hover:bg-primary/90 transition-colors disabled:opacity-50"
               >
-                <ArrowRight className="w-5 h-5" />
+                {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <ArrowRight className="w-5 h-5" />}
               </button>
             </div>
           </div>
@@ -73,7 +78,7 @@ export default function Pair() {
             <p className="text-muted-foreground leading-relaxed">{result.description}</p>
             
             <button 
-              onClick={() => setResult(null)} 
+              onClick={() => { setResult(null); setInput(""); }} 
               className="text-sm text-white/50 hover:text-white transition-colors underline decoration-dotted"
             >
               Try another pairing
