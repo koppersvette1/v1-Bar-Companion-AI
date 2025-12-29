@@ -1,0 +1,261 @@
+REBUILD REQUEST:
+Completely regenerate this project into a clean, working, full-stack web app called “BarBuddy”.
+You may delete, replace, and restructure all existing code, database schema, routes, and UI as needed.
+The goal is a stable, mobile-first MVP with advanced personalization and a best-in-class smoked cocktail system.
+Provide a README with setup instructions.
+
+==================================================
+BARBUDDY — COMPLETE SPEC (FOUNDATION + NEXT LEVEL)
+==================================================
+
+NON-NEGOTIABLE SMOKED COCKTAIL RULES
+These rules must be enforced across UI, logic, pairing, and guided smoker mode:
+- Smoke the glass, not the drink (default).
+- Smoked drinks reduce bitters by 30–50%.
+- Max 3 total dashes of bitters.
+- Visible lingering smoke = too much.
+- Smoke time range: 5–20 seconds depending on wood intensity.
+- Order of operations:
+  1) Build drink
+  2) Smoke glass
+  3) Rest 20–30 seconds
+  4) Pour
+  5) Garnish
+- Troubleshooting guidance:
+  - Too bitter → shorter smoke + fewer bitters + more dilution
+  - Too smoky → add spirit + fresh ice
+  - Flat/dull → express citrus peel
+  - Too sweet → add 1 dash bitters or citrus oil
+  - Hot/sharp → more dilution, not more sugar
+
+--------------------------------------------------
+1) AUTHENTICATION + PER-USER DATA
+--------------------------------------------------
+- Email/password login.
+- All data is per-user:
+  inventory, tools, smoker setup, wood flavors, cocktails, meals,
+  favorites, viewed history, made history, preferences, shopping list.
+
+--------------------------------------------------
+2) INGREDIENT INVENTORY + SCANNING (NEXT LEVEL)
+--------------------------------------------------
+A) Scan Bottle (Primary = Barcode, Fallback = OCR)
+- Barcode scan (UPC/EAN) using device camera.
+- If barcode resolves:
+  - Attempt lookup via free/open data source or pluggable provider.
+  - If lookup fails, allow quick manual entry and store barcode for future learning.
+- OCR fallback:
+  - Label photo → crop/confirm → OCR → cleaned text → fuzzy-match suggestions.
+  - Show top 5 matches with confidence.
+  - Always allow confirm/edit before saving.
+
+B) Learn From My Edits
+- When I correct a scan result, store a per-user mapping so future scans auto-fill correctly.
+
+C) Ingredient Fields
+- name, brand, category (spirit type), subtype, ABV (optional),
+  photo, notes, quantity (bottle/partial/oz/ml), date added, tags.
+
+D) Inventory Intelligence
+- Show “What I have”
+- Enable “What I’m missing” for cocktails
+- Track low stock
+- Optional opened/expiration tracking for perishables
+
+--------------------------------------------------
+3) BAR TOOLS + SMOKER SETUP
+--------------------------------------------------
+- Tools inventory: shaker, jigger, strainer, muddler, blender, cocktail smoker, etc.
+- Smoker setup per user:
+  - hasSmoker (boolean)
+  - deviceName (optional)
+  - preferredIntensity (light / medium / bold)
+  - notes
+- If hasSmoker=false, hide smoked features and prompt enabling smoker in settings.
+
+--------------------------------------------------
+4) WOOD CHIP / WOOD DUST LIBRARY (MY KIT)
+--------------------------------------------------
+Seed EXACTLY these 8 woods (enabled by default, editable per user):
+- Apple
+- Cherry
+- Hickory
+- Mesquite
+- Oak
+- Pecan
+- Maple
+- Alder
+
+Each wood entry includes:
+- name
+- intensity (light / medium / strong / very-strong)
+- recommendedTimeSecondsMin
+- recommendedTimeSecondsMax
+- purpose (short)
+- tastingNotes (short)
+- bestWithDrinkTags (array)
+- bestWithFoodTags (array)
+- avoidWithDrinkTags (optional)
+- beginnerSafe (boolean)
+- isInMyKit (boolean)
+
+Seed defaults:
+- Apple: light, 15–20s, gentle sweet aroma; sours, citrus, light spirits; food: chicken, pork, cheese
+- Cherry: medium-light, 12–18s, sweet richness; OF/Manhattan/bourbon/rye; food: pork, duck, BBQ, chocolate
+- Oak: medium, 8–12s, barrel accent only; neat/classic OF; food: steak, beef, aged cheese
+- Pecan: medium, 12–15s, warm nutty; fall/maple drinks; food: turkey, squash, caramel desserts
+- Hickory: strong, 5–8s, savory bold; food: brisket, ribs, BBQ (easy to overdo)
+- Mesquite: very-strong, 5–7s, aggressive campfire; food: Tex-Mex, carne asada (advanced)
+- Maple: light-medium, 10–15s, toasted sugar; dessert/coffee/bourbon; food: breakfast meats, desserts
+- Alder: light, 12–15s, clean mild; gin/vodka/citrus; food: seafood, poultry, herbs
+
+--------------------------------------------------
+5) COCKTAIL LIBRARY + AVAILABILITY
+--------------------------------------------------
+- Seed ~50 classic cocktails with structured metadata:
+  base spirit, category, glassware, garnish,
+  sweetness, bitterness, acidity, smokyFlag, drinkTags.
+- Browse/search/filter.
+- Show:
+  - “You can make now”
+  - “Almost” (missing ≤2 ingredients)
+- Cocktail detail page:
+  ingredients, measurements, steps, glassware, garnish,
+  missing ingredients, favorite button.
+
+--------------------------------------------------
+6) CREATIVE COCKTAIL GENERATION
+--------------------------------------------------
+- Generate 5–10 new recipes from inventory.
+- Modes:
+  classic / modern / tiki / smoky / low-ABV
+- Each generated recipe includes:
+  ingredients + measurements, steps, glassware, garnish, flavor profile.
+- Clearly label generated vs classic.
+- Prefer ingredients I already have; suggest substitutions.
+- Smoky mode integrates smoker + wood recommendations.
+
+--------------------------------------------------
+7) MEAL ↔ DRINK PAIRING (SMART)
+--------------------------------------------------
+- Two-way pairing:
+  meal → cocktails
+  cocktail → meals
+- Meal attributes:
+  cuisine, protein, cooking method, spice level,
+  richness/fat, sweetness, acidity, smoky/charred, key flavors.
+- Pairing engine:
+  - Rule-based (contrast vs complement) for explainability
+  - Learning-based re-ranking using my history and ratings
+- Always show “Why this pairing works”.
+
+Smoker integration:
+- If grilled/BBQ/char/rich AND hasSmoker=true:
+  boost smoked cocktails and recommend top 3 woods with explanation.
+
+--------------------------------------------------
+8) SMOKER MODE v2 (SIGNATURE FEATURE)
+--------------------------------------------------
+A) Smoke Intensity Control
+- Slider: Aroma → Balanced → Bold
+- Maps to wood-specific time caps:
+  Hickory ≤8s, Mesquite ≤7s, Oak ≤12s.
+
+B) Presets
+- Light / Medium / Bold presets (optional alongside slider).
+
+C) Guided Smoker Mode (WITH TIMERS)
+Steps:
+1) Build drink (stir/shake)
+2) Add small pinch of wood
+3) Torch now
+4) Smoke capture timer (wood + intensity)
+5) Rest timer (20–30s)
+6) Pour + garnish (suggest citrus if flat)
+
+D) Repeat Last Smoke
+- One-tap “Repeat last smoke settings”.
+
+E) Adjust Next Time
+- After logging:
+  Too smoky / Too bitter / Flat
+- Use feedback to auto-adjust future recommendations.
+
+--------------------------------------------------
+9) PERSONALIZATION (“TASTE BRAIN”)
+--------------------------------------------------
+- Flavor dimensions:
+  sweet, sour, bitter, boozy, smoky, herbal, spicy, creamy, fruity, refreshing.
+- After “Made it” collect:
+  - Would make again? (yes/no)
+  - Too sweet / too smoky / too bitter / too boozy / just right
+  - Optional rating + notes
+- Use preferences to:
+  - Rank cocktails
+  - Rank wood choices
+  - Tune smoke intensity
+  - Power a “For You” feed.
+
+--------------------------------------------------
+10) HISTORY + MEMORY
+--------------------------------------------------
+- Recently viewed cocktails (timestamps).
+- Made history:
+  timestamp, rating, notes, substitutions.
+- If smoked:
+  wood, method, intensity, smoke time, rest time.
+- Home screen:
+  Continue where I left off
+  Last 10 viewed
+  Last 10 made (with smoked indicator).
+
+--------------------------------------------------
+11) INVENTORY v2 FEATURES
+--------------------------------------------------
+- Low-stock tracking.
+- Shopping list from:
+  missing ingredients + planned meals.
+- “Use it up” suggestions for perishables.
+- Batch mode:
+  scale recipes for N drinks,
+  suggest dilution (15–20%) and total volume.
+
+--------------------------------------------------
+12) PAGES / NAVIGATION
+--------------------------------------------------
+- Home dashboard:
+  Scan Bottle
+  Add Ingredient
+  Generate Cocktail
+  Pair With Meal
+  Pair With Drink
+  Guided Smoke
+- Inventory (ingredients + tools)
+- Cocktails
+- Cocktail detail
+- Pairing flows
+- Smoked Cocktail Guide
+- Profile/Settings
+
+--------------------------------------------------
+13) TECH REQUIREMENTS
+--------------------------------------------------
+- Full-stack web app with persistent database.
+- Prefer Next.js (TypeScript) + Prisma + Postgres (SQLite OK for MVP).
+- Image upload must work in Replit.
+- No paid APIs required.
+- Product lookup must be pluggable with manual fallback.
+- Provide README explaining:
+  scanning flow, learning logic, seed data, extension points.
+
+--------------------------------------------------
+DELIVERABLE
+--------------------------------------------------
+A working BarBuddy app with:
+- Barcode + OCR scanning
+- Smart cocktail generation
+- Meal pairing
+- Full smoker system with guided mode
+- Personalization
+- Inventory intelligence
+- History + memory
