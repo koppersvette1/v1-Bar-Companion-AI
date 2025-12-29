@@ -1,8 +1,6 @@
-import { useStore } from "@/lib/store";
-import { User, Plus, X, Thermometer, Droplets, Wine, Heart, Trash2, Zap } from "lucide-react";
+import { usePeople, useCreatePerson, useDeletePerson } from "@/lib/api";
+import { User, Plus, X, Trash2, Zap } from "lucide-react";
 import { useState } from "react";
-import { cn } from "@/lib/utils";
-import { v4 as uuidv4 } from 'uuid';
 
 const TEMPLATES = [
   {
@@ -23,10 +21,11 @@ const TEMPLATES = [
 ];
 
 export default function People() {
-  const { people, addPerson, deletePerson } = useStore();
-  const [showAdd, setShowAdd] = useState(false);
+  const { data: people = [], isLoading } = usePeople();
+  const createPerson = useCreatePerson();
+  const deletePerson = useDeletePerson();
   
-  // New Person Form
+  const [showAdd, setShowAdd] = useState(false);
   const [name, setName] = useState("");
   const [sweetness, setSweetness] = useState<'dry'|'balanced'|'sweet'>('balanced');
   const [abv, setAbv] = useState<'low'|'medium'|'high'>('medium');
@@ -34,7 +33,7 @@ export default function People() {
 
   const handleCreate = () => {
     if(!name) return;
-    addPerson({
+    createPerson.mutate({
       name,
       sweetnessPref: sweetness,
       abvComfort: abv,
@@ -54,14 +53,22 @@ export default function People() {
     if (!name) setName(tpl.name.split(' ')[0]);
   };
 
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-24">
+        <div className="text-slate-400">Loading...</div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6 pb-24">
       <div className="flex items-center justify-between">
          <div>
-           <h1 className="text-3xl font-serif font-bold text-white">Profiles</h1>
+           <h1 className="text-3xl font-serif font-bold text-white" data-testid="text-page-title">Profiles</h1>
            <p className="text-slate-400 text-sm">Manage taste preferences for friends & family</p>
          </div>
-         <button onClick={() => setShowAdd(true)} className="px-4 py-2 bg-orange-500 text-white rounded-lg text-sm font-bold shadow-lg shadow-orange-500/20 flex items-center gap-2">
+         <button onClick={() => setShowAdd(true)} className="px-4 py-2 bg-orange-500 text-white rounded-lg text-sm font-bold shadow-lg shadow-orange-500/20 flex items-center gap-2" data-testid="button-add-person">
            <Plus className="w-4 h-4" /> Add Person
          </button>
       </div>
@@ -70,7 +77,7 @@ export default function People() {
         <div className="p-6 bg-slate-900 border border-slate-800 rounded-2xl space-y-4 animate-in fade-in slide-in-from-top-4">
            <div className="flex justify-between items-center mb-2">
              <h3 className="font-bold text-white">New Profile</h3>
-             <button onClick={() => setShowAdd(false)}><X className="w-4 h-4 text-slate-500" /></button>
+             <button onClick={() => setShowAdd(false)} data-testid="button-close-form"><X className="w-4 h-4 text-slate-500" /></button>
            </div>
 
            {/* Quick Templates */}
@@ -80,6 +87,7 @@ export default function People() {
                  key={t.name}
                  onClick={() => applyTemplate(t)}
                  className="flex-shrink-0 px-3 py-2 bg-slate-800 border border-slate-700 rounded-xl text-left hover:bg-slate-700 transition-colors group"
+                 data-testid={`button-template-${t.name.toLowerCase().replace(/\s/g, '-')}`}
                >
                  <div className="text-xs font-bold text-orange-400 flex items-center gap-1 group-hover:text-orange-300">
                    <Zap className="w-3 h-3" /> {t.name}
@@ -91,13 +99,24 @@ export default function People() {
            
            <div className="space-y-1">
              <label className="text-xs text-slate-400 uppercase font-bold">Name</label>
-             <input value={name} onChange={e => setName(e.target.value)} className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-white" placeholder="e.g. Sarah" />
+             <input 
+               value={name} 
+               onChange={e => setName(e.target.value)} 
+               className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-white" 
+               placeholder="e.g. Sarah"
+               data-testid="input-person-name"
+             />
            </div>
 
            <div className="grid grid-cols-2 gap-4">
              <div className="space-y-1">
                <label className="text-xs text-slate-400 uppercase font-bold">Sweetness</label>
-               <select value={sweetness} onChange={e => setSweetness(e.target.value as any)} className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-white text-sm">
+               <select 
+                 value={sweetness} 
+                 onChange={e => setSweetness(e.target.value as any)} 
+                 className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-white text-sm"
+                 data-testid="select-sweetness"
+               >
                  <option value="dry">Dry</option>
                  <option value="balanced">Balanced</option>
                  <option value="sweet">Sweet</option>
@@ -105,7 +124,12 @@ export default function People() {
              </div>
              <div className="space-y-1">
                <label className="text-xs text-slate-400 uppercase font-bold">ABV Comfort</label>
-               <select value={abv} onChange={e => setAbv(e.target.value as any)} className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-white text-sm">
+               <select 
+                 value={abv} 
+                 onChange={e => setAbv(e.target.value as any)} 
+                 className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-white text-sm"
+                 data-testid="select-abv"
+               >
                  <option value="low">Low (Session)</option>
                  <option value="medium">Medium</option>
                  <option value="high">High (Boozy)</option>
@@ -121,7 +145,13 @@ export default function People() {
              </div>
            )}
 
-           <button onClick={handleCreate} className="w-full py-2 bg-slate-800 text-white font-bold rounded-lg hover:bg-slate-700">Create Profile</button>
+           <button 
+             onClick={handleCreate} 
+             className="w-full py-2 bg-slate-800 text-white font-bold rounded-lg hover:bg-slate-700"
+             data-testid="button-create-person"
+           >
+             Create Profile
+           </button>
         </div>
       )}
 
@@ -133,9 +163,13 @@ export default function People() {
            </div>
         )}
 
-        {people.map(p => (
-          <div key={p.id} className="p-6 bg-slate-900 border border-slate-800 rounded-2xl relative group">
-             <button onClick={() => deletePerson(p.id)} className="absolute top-4 right-4 text-slate-600 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity">
+        {people.map((p: any) => (
+          <div key={p.id} className="p-6 bg-slate-900 border border-slate-800 rounded-2xl relative group" data-testid={`card-person-${p.id}`}>
+             <button 
+               onClick={() => deletePerson.mutate(p.id)} 
+               className="absolute top-4 right-4 text-slate-600 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity"
+               data-testid={`button-delete-${p.id}`}
+             >
                <Trash2 className="w-4 h-4" />
              </button>
              
@@ -144,7 +178,7 @@ export default function People() {
                  {p.name[0]}
                </div>
                <div>
-                 <h3 className="font-bold text-white text-lg">{p.name}</h3>
+                 <h3 className="font-bold text-white text-lg" data-testid={`text-name-${p.id}`}>{p.name}</h3>
                  <div className="flex gap-2 text-xs text-slate-400">
                    <span className="capitalize">{p.sweetnessPref}</span>
                    <span>•</span>
@@ -154,13 +188,13 @@ export default function People() {
              </div>
 
              <div className="flex flex-wrap gap-2">
-               {p.likedTags.map(t => (
+               {p.likedTags?.map((t: string) => (
                  <span key={t} className="px-2 py-1 bg-green-500/10 text-green-400 text-[10px] rounded uppercase font-bold">{t}</span>
                ))}
-               {p.dislikedTags.map(t => (
+               {p.dislikedTags?.map((t: string) => (
                  <span key={t} className="px-2 py-1 bg-red-500/10 text-red-400 text-[10px] rounded uppercase font-bold line-through">{t}</span>
                ))}
-               {p.likedTags.length === 0 && p.dislikedTags.length === 0 && (
+               {(!p.likedTags || p.likedTags.length === 0) && (!p.dislikedTags || p.dislikedTags.length === 0) && (
                  <span className="text-xs text-slate-600 italic">No taste data yet...</span>
                )}
              </div>
