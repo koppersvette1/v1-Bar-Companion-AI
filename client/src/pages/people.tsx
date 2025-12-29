@@ -1,8 +1,26 @@
 import { useStore } from "@/lib/store";
-import { User, Plus, X, Thermometer, Droplets, Wine, Heart, Trash2 } from "lucide-react";
+import { User, Plus, X, Thermometer, Droplets, Wine, Heart, Trash2, Zap } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { v4 as uuidv4 } from 'uuid';
+
+const TEMPLATES = [
+  {
+    name: "Wine Lover (Warm)",
+    desc: "Likes dry, crisp, lower ABV",
+    data: { sweetnessPref: 'dry', abvComfort: 'low', seasonalPref: 'warm-weather', likedTags: ['refreshing', 'citrus', 'sour'], dislikedTags: ['sweet', 'boozy'] }
+  },
+  {
+    name: "Cocktail Geek",
+    desc: "Loves bitter, strong, complex",
+    data: { sweetnessPref: 'balanced', abvComfort: 'high', seasonalPref: 'neutral', likedTags: ['bitter', 'herbal', 'boozy', 'complex'], dislikedTags: ['sweet', 'fruity'] }
+  },
+  {
+    name: "Sweet Tooth",
+    desc: "Dessert drinks, fruity, fun",
+    data: { sweetnessPref: 'sweet', abvComfort: 'medium', seasonalPref: 'neutral', likedTags: ['sweet', 'fruity', 'dessert'], dislikedTags: ['bitter', 'dry', 'herbal'] }
+  }
+];
 
 export default function People() {
   const { people, addPerson, deletePerson } = useStore();
@@ -12,6 +30,7 @@ export default function People() {
   const [name, setName] = useState("");
   const [sweetness, setSweetness] = useState<'dry'|'balanced'|'sweet'>('balanced');
   const [abv, setAbv] = useState<'low'|'medium'|'high'>('medium');
+  const [likedTags, setLikedTags] = useState<string[]>([]);
 
   const handleCreate = () => {
     if(!name) return;
@@ -19,12 +38,20 @@ export default function People() {
       name,
       sweetnessPref: sweetness,
       abvComfort: abv,
-      likedTags: [],
+      likedTags: likedTags,
       dislikedTags: [],
       seasonalPref: 'neutral'
     });
     setName("");
+    setLikedTags([]);
     setShowAdd(false);
+  };
+
+  const applyTemplate = (tpl: any) => {
+    setSweetness(tpl.data.sweetnessPref);
+    setAbv(tpl.data.abvComfort);
+    setLikedTags(tpl.data.likedTags);
+    if (!name) setName(tpl.name.split(' ')[0]);
   };
 
   return (
@@ -44,6 +71,22 @@ export default function People() {
            <div className="flex justify-between items-center mb-2">
              <h3 className="font-bold text-white">New Profile</h3>
              <button onClick={() => setShowAdd(false)}><X className="w-4 h-4 text-slate-500" /></button>
+           </div>
+
+           {/* Quick Templates */}
+           <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-none">
+             {TEMPLATES.map(t => (
+               <button 
+                 key={t.name}
+                 onClick={() => applyTemplate(t)}
+                 className="flex-shrink-0 px-3 py-2 bg-slate-800 border border-slate-700 rounded-xl text-left hover:bg-slate-700 transition-colors group"
+               >
+                 <div className="text-xs font-bold text-orange-400 flex items-center gap-1 group-hover:text-orange-300">
+                   <Zap className="w-3 h-3" /> {t.name}
+                 </div>
+                 <div className="text-[10px] text-slate-500">{t.desc}</div>
+               </button>
+             ))}
            </div>
            
            <div className="space-y-1">
@@ -69,6 +112,14 @@ export default function People() {
                </select>
              </div>
            </div>
+
+           {likedTags.length > 0 && (
+             <div className="flex flex-wrap gap-2 pt-2">
+               {likedTags.map(t => (
+                 <span key={t} className="px-2 py-1 bg-green-500/10 text-green-400 text-[10px] rounded uppercase font-bold">{t}</span>
+               ))}
+             </div>
+           )}
 
            <button onClick={handleCreate} className="w-full py-2 bg-slate-800 text-white font-bold rounded-lg hover:bg-slate-700">Create Profile</button>
         </div>

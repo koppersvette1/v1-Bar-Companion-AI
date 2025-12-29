@@ -1,12 +1,13 @@
 import { useState } from "react";
 import { useStore, Recipe } from "@/lib/store";
-import { Sparkles, Filter, Info, ChefHat, Wind, Heart, User } from "lucide-react";
+import { Sparkles, Filter, Info, ChefHat, Wind, Heart, User, Bug } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { rankRecipesForPerson } from "@/lib/logic/learning";
 import { validateRecipe } from "@/lib/logic/rules";
+import DebugPanel from "@/components/debug-panel";
 
 export default function Cocktails() {
-  const { recipes, people, favorites, toggleFavorite, settings } = useStore();
+  const { recipes, people, favorites, toggleFavorite, settings, updateSettings } = useStore();
   const [selectedPersonId, setSelectedPersonId] = useState<string | null>(null);
   const [filter, setFilter] = useState<'all'|'smoky'|'classic'>('all');
 
@@ -30,20 +31,30 @@ export default function Cocktails() {
            <p className="text-slate-400 text-sm">Library & Generator</p>
         </div>
         
-        {/* Person Selector */}
-        {people.length > 0 && (
-          <div className="flex items-center gap-2 bg-slate-900 p-1 rounded-xl border border-slate-800">
-             <span className="text-xs font-bold uppercase text-slate-500 px-2">For:</span>
-             <select 
-               className="bg-transparent text-white text-sm font-bold focus:outline-none"
-               onChange={(e) => setSelectedPersonId(e.target.value || null)}
-             >
-               <option value="">Everyone</option>
-               {people.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
-             </select>
-             <User className="w-4 h-4 text-orange-500" />
-          </div>
-        )}
+        <div className="flex gap-2">
+           {/* Debug Toggle (Dev Only) */}
+           <button 
+             onClick={() => updateSettings({ debugMode: !settings.debugMode })}
+             className={cn("p-2 rounded-xl border transition-colors", settings.debugMode ? "bg-orange-500/20 text-orange-500 border-orange-500" : "bg-slate-900 text-slate-600 border-slate-800")}
+           >
+             <Bug className="w-4 h-4" />
+           </button>
+
+           {/* Person Selector */}
+           {people.length > 0 && (
+            <div className="flex items-center gap-2 bg-slate-900 p-1 rounded-xl border border-slate-800">
+               <span className="text-xs font-bold uppercase text-slate-500 px-2">For:</span>
+               <select 
+                 className="bg-transparent text-white text-sm font-bold focus:outline-none"
+                 onChange={(e) => setSelectedPersonId(e.target.value || null)}
+               >
+                 <option value="">Everyone</option>
+                 {people.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+               </select>
+               <User className="w-4 h-4 text-orange-500" />
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Filters */}
@@ -78,6 +89,11 @@ export default function Cocktails() {
                       <div className="flex gap-2 mb-2">
                         <span className="text-[10px] font-bold uppercase bg-white/10 backdrop-blur-md px-2 py-1 rounded text-white">{recipe.baseSpirit}</span>
                         {recipe.isSmoked && <span className="text-[10px] font-bold uppercase bg-orange-500/80 backdrop-blur-md px-2 py-1 rounded text-white flex items-center gap-1"><Wind className="w-3 h-3" /> Smoked</span>}
+                        {selectedPerson && recipe._score && recipe._score > 0 && (
+                          <span className="text-[10px] font-bold uppercase bg-green-500/20 text-green-400 px-2 py-1 rounded flex items-center gap-1">
+                             {recipe._score}% Match
+                          </span>
+                        )}
                       </div>
                       <h3 className="text-2xl font-serif font-bold text-white">{recipe.name}</h3>
                    </div>
@@ -109,6 +125,11 @@ export default function Cocktails() {
                        <Info className="w-4 h-4 text-yellow-500 flex-shrink-0 mt-0.5" />
                        <p className="text-xs text-yellow-200/80">{warnings[0]}</p>
                      </div>
+                   )}
+                   
+                   {/* Debug Panel (Only if Enabled) */}
+                   {settings.debugMode && selectedPerson && (
+                     <DebugPanel recipe={recipe} />
                    )}
 
                    <button className="w-full py-3 bg-slate-800 hover:bg-white text-white hover:text-black font-bold rounded-xl transition-colors flex items-center justify-center gap-2">

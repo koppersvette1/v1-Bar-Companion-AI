@@ -73,6 +73,10 @@ export interface Recipe {
   tags: string[]; // bitter, sweet, sour, boozy, etc.
   sourceUrl?: string;
   sourceName?: string;
+  
+  // Runtime Learning Props (Optional)
+  _score?: number;
+  _debugReasons?: string[];
 }
 
 export interface HistoryEntry {
@@ -98,6 +102,7 @@ export interface UserSettings {
   smokerDeviceName?: string;
   defaultIntensity: Intensity;
   enableCostTracking: boolean;
+  debugMode: boolean; // Dev only
   woodAffinity: Record<string, number>; // Learning weights for woods
 }
 
@@ -226,6 +231,7 @@ export const useStore = create<AppState>()(
         hasSmoker: false,
         defaultIntensity: 'medium',
         enableCostTracking: false,
+        debugMode: false,
         woodAffinity: {}
       },
 
@@ -321,6 +327,7 @@ export const useStore = create<AppState>()(
           hasSmoker: false,
           defaultIntensity: 'medium',
           enableCostTracking: false,
+          debugMode: false,
           woodAffinity: {}
         }
       })
