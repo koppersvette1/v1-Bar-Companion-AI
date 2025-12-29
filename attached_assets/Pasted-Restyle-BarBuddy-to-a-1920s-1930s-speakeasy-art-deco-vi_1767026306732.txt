@@ -1,0 +1,85 @@
+Restyle BarBuddy to a 1920s–1930s speakeasy / art-deco vibe: deep dramatic colors, brass accents, elegant typography, subtle texture, and polished components. Keep the app mobile-first and accessible (contrast, readable font sizes). Do not change business logic; only theme/UI.
+
+A) THEME TOKENS (GLOBAL)
+Implement a centralized theme system (CSS variables or Tailwind theme) with:
+- Background: near-black / deep charcoal
+- Surfaces/cards: deep green or oxblood with subtle contrast
+- Primary accent: brass/gold
+- Secondary accent: cream/ivory
+- Muted text: warm gray
+- Danger: deep red (not neon)
+- Success: deep emerald (not neon)
+Add variables for:
+--bg, --surface, --surface2, --text, --muted, --border,
+--accent, --accent2, --danger, --success,
+--shadow, --radius, --focus
+
+B) COLOR PALETTE (SUGGESTED)
+Use these as defaults (can adjust slightly for contrast):
+- bg: #0B0B0D (near-black)
+- surface: #121216
+- surface2: #181820
+- text: #F2E9D8 (ivory)
+- muted: #B9B1A2 (warm gray)
+- border: rgba(242,233,216,0.12)
+- accent (brass): #C6A15B
+- accent2 (champagne): #E3CFA3
+- danger: #8B2C2C
+- success: #1F6B4A
+
+C) TYPOGRAPHY
+- Headings: art-deco inspired (e.g., “Cinzel” or similar available web font)
+- Body: readable serif/sans blend (e.g., “Cormorant Garamond” or “Inter” for body if needed)
+Rules:
+- Use headings sparingly; keep body readable.
+- Increase letter spacing slightly on headings for deco feel.
+
+D) COMPONENT STYLING
+Update all main components:
+1) Top nav + tabs:
+- Dark background with brass active indicator
+- Subtle bottom border
+2) Buttons:
+- Primary: brass fill, dark text
+- Secondary: transparent with brass border
+- Destructive: deep red with ivory text
+- Hover/focus: gentle glow (not neon)
+3) Cards:
+- Deep surface with subtle gradient + thin brass edge (very subtle)
+- Softer shadows; use warm highlights
+4) Inputs:
+- Dark input background with ivory text
+- Brass focus ring
+5) Chips/tags:
+- Dark surface with brass outline; selected = brass fill
+6) Tables/lists:
+- Zebra with subtle contrast; dividers in warm translucent border
+7) Modals:
+- Dark overlay; modal surface with brass header line
+
+E) ICONOGRAPHY + DETAILS (SUBTLE)
+- Use simple line icons; accent color brass.
+- Add subtle texture option:
+  - A faint noise overlay or paper grain on background (very low opacity).
+- Add a small “art deco” divider style (thin lines, small geometric motif) for section headers.
+
+F) PAGE-SPECIFIC POLISH
+1) Home dashboard:
+- Hero header with speakeasy title treatment
+- Primary CTAs as large brass buttons
+2) Cocktail detail:
+- Recipe section with deco dividers
+- Smoker controls styled like a “control panel” with brass toggles
+3) Favorites/People/Settings:
+- Consistent dark cards, brass highlights, readable spacing
+
+G) ACCESSIBILITY & QA
+- Ensure contrast meets WCAG for text on dark surfaces.
+- Ensure focus states are visible (brass ring).
+- Ensure buttons and chips have clear selected states.
+
+H) OPTIONAL: LIGHT/DARK TOGGLE
+Keep speakeasy as default theme. If a theme toggle exists, keep it but ensure speakeasy is primary.
+
+DELIVERABLE:
+A cohesive 1920s–1930s speakeasy/art-deco theme applied across the entire app with consistent tokens, updated components, and improved polish, without changing functionality.

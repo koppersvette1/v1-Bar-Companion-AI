@@ -1,8 +1,8 @@
 import { useStore } from "@/lib/store";
-import { FlaskConical, Plus, Search, ScanLine, Edit2, Trash2, DollarSign } from "lucide-react";
+import { FlaskConical, Plus, Search, ScanLine, Trash2, DollarSign } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
-import AddItemModal from "@/components/add-item-modal"; // I will restore this
+import AddItemModal from "@/components/add-item-modal";
 
 export default function Inventory() {
   const { inventory, removeInventoryItem, loadSeedData, settings } = useStore();
@@ -25,36 +25,50 @@ export default function Inventory() {
 
       <div className="flex items-center justify-between">
         <div>
-           <h1 className="text-3xl font-serif font-bold text-white">My Bar</h1>
-           <p className="text-slate-400 text-sm">Manage ingredients & tools</p>
+           <h1 className="text-3xl font-display font-semibold tracking-wide" style={{ color: 'var(--text)' }} data-testid="text-page-title">My Bar</h1>
+           <p className="text-sm mt-1" style={{ color: 'var(--muted-text)' }}>Manage ingredients & tools</p>
         </div>
         <div className="flex gap-2">
            {inventory.length === 0 && (
-             <button onClick={loadSeedData} className="px-3 py-2 bg-slate-800 text-slate-300 rounded-lg text-sm font-medium">Load Demo</button>
+             <button 
+               onClick={loadSeedData} 
+               className="px-3 py-2 rounded-lg text-sm font-medium"
+               style={{ background: 'var(--surface2)', color: 'var(--muted-text)', border: '1px solid var(--border-color)' }}
+               data-testid="button-load-demo"
+             >
+               Load Demo
+             </button>
            )}
-           <button onClick={() => setShowAddModal(true)} className="px-4 py-2 bg-orange-500 text-white rounded-lg text-sm font-bold shadow-lg shadow-orange-500/20 flex items-center gap-2">
+           <button 
+             onClick={() => setShowAddModal(true)} 
+             className="btn-brass px-4 py-2 rounded-lg text-sm flex items-center gap-2"
+             data-testid="button-scan"
+           >
              <ScanLine className="w-4 h-4" /> Scan
            </button>
         </div>
       </div>
 
       <div className="space-y-4">
-        {/* Search & Filter */}
+        {/* Search */}
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: 'var(--muted-text)' }} />
           <input 
             type="text" 
             placeholder="Search inventory..." 
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full bg-slate-900 border border-slate-800 rounded-xl pl-10 pr-4 py-3 text-sm text-white focus:ring-1 focus:ring-orange-500 outline-none"
+            className="input-speakeasy w-full rounded-xl pl-10 pr-4 py-3 text-sm"
+            data-testid="input-search"
           />
         </div>
         
+        {/* Filter Chips */}
         <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-none">
           <button 
              onClick={() => setFilter('all')}
-             className={cn("px-3 py-1.5 rounded-full text-xs font-medium border transition-colors", filter === 'all' ? "bg-orange-500 text-white border-orange-500" : "bg-transparent text-slate-400 border-slate-800")}
+             className={cn("chip-speakeasy", filter === 'all' && "active")}
+             data-testid="button-filter-all"
           >
             All
           </button>
@@ -62,7 +76,8 @@ export default function Inventory() {
             <button 
                key={c}
                onClick={() => setFilter(c)}
-               className={cn("px-3 py-1.5 rounded-full text-xs font-medium border transition-colors capitalize", filter === c ? "bg-orange-500 text-white border-orange-500" : "bg-transparent text-slate-400 border-slate-800")}
+               className={cn("chip-speakeasy capitalize", filter === c && "active")}
+               data-testid={`button-filter-${c}`}
             >
               {c}
             </button>
@@ -73,37 +88,39 @@ export default function Inventory() {
       {/* Grid */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 pb-24">
          {filteredItems.length === 0 ? (
-           <div className="col-span-full py-12 text-center text-slate-500 border border-dashed border-slate-800 rounded-2xl">
-             <FlaskConical className="w-12 h-12 mx-auto mb-3 opacity-50" />
-             <p>No items found.</p>
+           <div className="col-span-full py-12 text-center rounded-2xl" style={{ border: '1px dashed var(--border-color)' }}>
+             <FlaskConical className="w-12 h-12 mx-auto mb-3 opacity-50" style={{ color: 'var(--muted-text)' }} />
+             <p style={{ color: 'var(--muted-text)' }}>No items found.</p>
            </div>
          ) : (
            filteredItems.map(item => (
-             <div key={item.id} className="relative aspect-[3/4] bg-slate-900 rounded-2xl border border-slate-800 overflow-hidden group">
+             <div key={item.id} className="relative aspect-[3/4] card-speakeasy overflow-hidden group" data-testid={`card-item-${item.id}`}>
                 {item.photo ? (
-                  <img src={item.photo} className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:opacity-100 transition-opacity" />
+                  <img src={item.photo} className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:opacity-80 transition-opacity" alt={item.name} />
                 ) : (
-                  <div className="absolute inset-0 flex items-center justify-center bg-slate-800">
-                    <span className="text-4xl font-serif text-slate-600 font-bold">{item.name[0]}</span>
+                  <div className="absolute inset-0 flex items-center justify-center" style={{ background: 'var(--surface2)' }}>
+                    <span className="text-4xl font-display font-semibold" style={{ color: 'var(--muted-text)' }}>{item.name[0]}</span>
                   </div>
                 )}
                 
-                <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/90 to-transparent">
-                  <div className="flex gap-1 mb-1">
-                     <span className="text-[10px] font-bold uppercase bg-white/10 text-slate-300 px-1.5 py-0.5 rounded">{item.category}</span>
+                <div className="absolute bottom-0 left-0 right-0 p-4" style={{ background: 'linear-gradient(to top, var(--bg) 0%, transparent 100%)' }}>
+                  <div className="flex gap-1 mb-1 flex-wrap">
+                     <span className="text-[10px] font-semibold uppercase px-1.5 py-0.5 rounded" style={{ background: 'rgba(255,255,255,0.1)', color: 'var(--text)' }}>{item.category}</span>
                      {settings.enableCostTracking && item.price && (
-                       <span className="text-[10px] font-bold uppercase bg-green-500/20 text-green-400 px-1.5 py-0.5 rounded flex items-center gap-0.5">
+                       <span className="text-[10px] font-semibold uppercase px-1.5 py-0.5 rounded flex items-center gap-0.5" style={{ background: 'rgba(31, 107, 74, 0.2)', color: 'var(--success)' }}>
                          <DollarSign className="w-2 h-2" />{item.price}
                        </span>
                      )}
                   </div>
-                  <h3 className="font-serif font-bold text-white leading-tight">{item.name}</h3>
-                  {item.brand && <p className="text-xs text-slate-400">{item.brand}</p>}
+                  <h3 className="font-display font-medium leading-tight" style={{ color: 'var(--text)' }}>{item.name}</h3>
+                  {item.brand && <p className="text-xs" style={{ color: 'var(--muted-text)' }}>{item.brand}</p>}
                 </div>
 
                 <button 
                   onClick={() => removeInventoryItem(item.id)}
-                  className="absolute top-2 right-2 p-2 bg-black/50 rounded-full text-white opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-500/80"
+                  className="absolute top-2 right-2 p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                  style={{ background: 'rgba(0,0,0,0.5)', color: 'var(--text)' }}
+                  data-testid={`button-delete-${item.id}`}
                 >
                   <Trash2 className="w-3 h-3" />
                 </button>
