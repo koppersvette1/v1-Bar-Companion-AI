@@ -1,174 +1,219 @@
-import { Item } from "@/lib/store";
+import { Item, Wood, UserSettings } from "@/lib/store";
 import cocktailImage from '@assets/generated_images/classic_old_fashioned_cocktail.png';
 
-// Fallback logic when no API key is present
-export const fallbackRecipes = [
+export interface Recipe {
+  id: string;
+  name: string;
+  description: string;
+  image: string;
+  baseSpirit: string;
+  style: 'classic' | 'modern' | 'tiki' | 'smoky' | 'low-abv';
+  ingredients: string[];
+  steps: string[];
+  glassware: string;
+  garnish: string;
+  isSmoked: boolean;
+  recommendedWood?: string;
+  smokeTime?: number;
+  tags: string[];
+  matchScore?: number; // 0-100
+  missingIngredients?: string[];
+}
+
+// --- Knowledge Base ---
+
+const CLASSIC_RECIPES: Recipe[] = [
   {
+    id: 'old-fashioned',
     name: "Classic Old Fashioned",
     description: "The definition of a cocktail: spirits, sugar, water, and bitters.",
     image: cocktailImage,
-    required: ["Whiskey", "Bitters", "Sugar/Syrup"],
-    ingredients: [
-      "2oz Whiskey (Bourbon or Rye)",
-      "0.25oz Simple Syrup",
-      "2 dashes Angostura Bitters",
-      "Orange Peel"
-    ],
-    steps: [
-      "Add syrup and bitters to a mixing glass.",
-      "Add whiskey and ice.",
-      "Stir until well chilled (30-45 seconds).",
-      "Strain into a rocks glass over a large ice cube.",
-      "Express orange peel oil over the drink and drop it in."
-    ],
-    tools: ["Mixing Glass", "Bar Spoon", "Strainer"],
-    tips: "Don't rush the stir. Dilution is key."
+    baseSpirit: "Whiskey",
+    style: "classic",
+    ingredients: ["2oz Bourbon or Rye", "0.25oz Simple Syrup", "2 dashes Angostura Bitters"],
+    steps: ["Stir all ingredients with ice.", "Strain into rocks glass over large cube.", "Express orange peel."],
+    glassware: "Rocks",
+    garnish: "Orange Peel",
+    isSmoked: false,
+    tags: ["boozy", "bitter", "sweet", "dinner"],
   },
   {
-    name: "Manhattan",
-    description: "A timeless classic that balances rich whiskey with sweet vermouth.",
+    id: 'smoked-old-fashioned',
+    name: "Campfire Old Fashioned",
+    description: "A rich, smoky twist on the classic. The smoke adds a savory depth.",
     image: cocktailImage,
-    required: ["Whiskey", "Sweet Vermouth", "Bitters"],
-    ingredients: [
-      "2oz Whiskey (Rye is traditional)",
-      "1oz Sweet Vermouth",
-      "2 dashes Angostura Bitters",
-      "Maraschino Cherry"
-    ],
-    steps: [
-      "Combine whiskey, vermouth, and bitters in a mixing glass with ice.",
-      "Stir until well chilled.",
-      "Strain into a chilled coupe or cocktail glass.",
-      "Garnish with a cherry."
-    ],
-    tools: ["Mixing Glass", "Bar Spoon", "Strainer"],
-    tips: "Store your vermouth in the fridge to keep it fresh."
+    baseSpirit: "Whiskey",
+    style: "smoky",
+    ingredients: ["2oz Bourbon", "0.25oz Maple Syrup", "2 dashes Angostura Bitters"],
+    steps: ["Smoke the glass with wood chips.", "Stir ingredients with ice.", "Strain into smoked glass.", "Garnish."],
+    glassware: "Rocks",
+    garnish: "Luxardo Cherry",
+    isSmoked: true,
+    recommendedWood: "Hickory",
+    smokeTime: 8,
+    tags: ["smoky", "boozy", "rich", "winter"],
   },
   {
-    name: "Smoked Old Fashioned",
-    description: "A rich twist on the classic using smoke to add depth.",
-    image: cocktailImage,
-    required: ["Whiskey", "Bitters", "Syrup", "Smoker"],
-    ingredients: [
-      "2oz Bourbon",
-      "0.25oz Maple Syrup",
-      "2 dashes Angostura Bitters",
-      "Orange Peel",
-      "Oak Wood Chips"
-    ],
-    steps: [
-      "Prepare your cocktail smoker with oak chips.",
-      "Build the drink in a mixing glass (whiskey, syrup, bitters) and stir with ice.",
-      "Strain into a rocks glass with a large cube.",
-      "Place the smoker on top and ignite.",
-      "Let the smoke sit for 10-15 seconds before serving."
-    ],
-    tools: ["Mixing Glass", "Strainer", "Cocktail Smoker", "Torch"],
-    tips: "Oak complements bourbon perfectly. Try cherry wood for a sweeter profile."
-  },
-  {
+    id: 'negroni',
     name: "Negroni",
     description: "The perfect balance of bitter, sweet, and botanical.",
     image: cocktailImage,
-    required: ["Gin", "Campari", "Sweet Vermouth"],
-    ingredients: [
-      "1oz Gin",
-      "1oz Campari",
-      "1oz Sweet Vermouth",
-      "Orange Peel"
-    ],
-    steps: [
-      "Add all ingredients to a mixing glass with ice.",
-      "Stir until well chilled.",
-      "Strain into a rocks glass over fresh ice.",
-      "Garnish with an orange peel."
-    ],
-    tools: ["Mixing Glass", "Bar Spoon", "Strainer"],
-    tips: "Equal parts makes it easy to remember."
+    baseSpirit: "Gin",
+    style: "classic",
+    ingredients: ["1oz Gin", "1oz Campari", "1oz Sweet Vermouth"],
+    steps: ["Stir with ice.", "Strain into rocks glass.", "Garnish."],
+    glassware: "Rocks",
+    garnish: "Orange Peel",
+    isSmoked: false,
+    tags: ["bitter", "herbal", "aperitif"],
+  },
+  {
+    id: 'smoked-negroni',
+    name: "Smoked Rosemary Negroni",
+    description: "The smoke tames the bitterness of Campari and accentuates the botanicals.",
+    image: cocktailImage,
+    baseSpirit: "Gin",
+    style: "smoky",
+    ingredients: ["1oz Gin", "1oz Campari", "1oz Sweet Vermouth"],
+    steps: ["Smoke the glass with chips.", "Stir ingredients.", "Strain into glass.", "Garnish with charred rosemary."],
+    glassware: "Rocks",
+    garnish: "Charred Rosemary",
+    isSmoked: true,
+    recommendedWood: "Apple",
+    smokeTime: 12,
+    tags: ["smoky", "bitter", "complex"],
+  },
+  {
+    id: 'margarita',
+    name: "Tommy's Margarita",
+    description: "A modern classic that highlights the agave flavor.",
+    image: cocktailImage,
+    baseSpirit: "Tequila",
+    style: "classic",
+    ingredients: ["2oz Tequila Blanco", "1oz Fresh Lime Juice", "0.5oz Agave Nectar"],
+    steps: ["Shake with ice.", "Strain into rocks glass with fresh ice."],
+    glassware: "Rocks",
+    garnish: "Lime Wheel + Salt Rim",
+    isSmoked: false,
+    tags: ["sour", "refreshing", "summer"],
+  },
+  {
+    id: 'mezcal-margarita',
+    name: "Smoky Mezcal Marg",
+    description: "Double the smoke: Mezcal base plus a smoked glass.",
+    image: cocktailImage,
+    baseSpirit: "Tequila", // Categorized broadly
+    style: "smoky",
+    ingredients: ["2oz Mezcal", "1oz Lime Juice", "0.5oz Agave", "Jalapeno slice"],
+    steps: ["Smoke the glass.", "Muddle jalapeno.", "Shake ingredients.", "Strain into glass."],
+    glassware: "Rocks",
+    garnish: "Lime + Chili Salt",
+    isSmoked: true,
+    recommendedWood: "Mesquite",
+    smokeTime: 6,
+    tags: ["smoky", "spicy", "sour"],
   }
 ];
 
-export const findMatch = (inventory: Item[], preferences: any) => {
-  // Simple keyword matching for fallback mode
-  const invNames = inventory.map(i => i.name.toLowerCase());
-  
-  // Try to find a recipe where we have at least one base ingredient
-  const available = fallbackRecipes.filter(r => {
-    // Check if user has main spirit
-    const needsWhiskey = r.required.includes("Whiskey");
-    const hasWhiskey = invNames.some(n => n.includes("whiskey") || n.includes("bourbon") || n.includes("rye"));
-    
-    const needsGin = r.required.includes("Gin");
-    const hasGin = invNames.some(n => n.includes("gin"));
+// --- Engine ---
 
-    if (needsWhiskey && !hasWhiskey) return false;
-    if (needsGin && !hasGin) return false;
-
-    // Check smoker preference
-    if (preferences.smoked && !r.required.includes("Smoker")) return false;
-    if (!preferences.smoked && r.required.includes("Smoker")) return false;
-
+export function generateRecipes(
+  inventory: Item[],
+  settings: UserSettings,
+  preferences: { baseSpirit?: string; style?: string; smoked?: boolean }
+): Recipe[] {
+  // 1. Filter by preferences
+  let candidates = CLASSIC_RECIPES.filter(r => {
+    if (preferences.baseSpirit && r.baseSpirit !== preferences.baseSpirit) return false;
+    if (preferences.style && r.style !== preferences.style) return false;
+    if (preferences.smoked && !r.isSmoked) return false;
+    // Don't show smoked drinks if user has no smoker (unless they explicitly asked for smoke style)
+    if (r.isSmoked && !settings.hasSmoker && preferences.style !== 'smoky') return false;
     return true;
   });
 
-  // Return a random match or default to Old Fashioned
-  return available.length > 0 
-    ? available[Math.floor(Math.random() * available.length)] 
-    : fallbackRecipes[0];
-};
+  // 2. Score by inventory match
+  const scored = candidates.map(recipe => {
+    let matches = 0;
+    const missing: string[] = [];
+    
+    // Naive matching
+    recipe.ingredients.forEach(ing => {
+      const ingName = ing.toLowerCase();
+      const hasItem = inventory.some(i => 
+        ingName.includes(i.name.toLowerCase()) || 
+        ingName.includes(i.category.toLowerCase()) ||
+        (i.subtype && ingName.includes(i.subtype.toLowerCase()))
+      );
+      
+      if (hasItem) matches++;
+      else missing.push(ing);
+    });
 
-export const fallbackPairings = [
-  {
-    keywords: ["spicy", "taco", "mexican", "curry"],
-    match: "Margarita or Paloma",
-    desc: "Acidity and sweetness cut through heat beautifully."
-  },
-  {
-    keywords: ["steak", "beef", "burger", "meat"],
-    match: "Old Fashioned or Cabernet",
-    desc: "Bold flavors need bold drinks. The tannins or whiskey depth stand up to the fat."
-  },
-  {
-    keywords: ["fish", "sushi", "seafood", "light"],
-    match: "Gin & Tonic or Martini",
-    desc: "Crisp, botanical flavors won't overpower delicate seafood."
-  },
-  {
-    keywords: ["dessert", "chocolate", "sweet"],
-    match: "Espresso Martini or Port",
-    desc: "Match sweetness with sweetness, or use coffee to contrast."
-  }
-];
+    // Bonus points for matching user's exact wood preference
+    if (recipe.isSmoked && recipe.recommendedWood) {
+       // Logic to check if user has this wood would go here
+    }
 
-export const getPairing = (input: string, mode: 'food-to-drink' | 'drink-to-food') => {
-  const lowerInput = input.toLowerCase();
+    return {
+      ...recipe,
+      matchScore: (matches / recipe.ingredients.length) * 100,
+      missingIngredients: missing
+    };
+  });
+
+  // 3. Sort by match score
+  return scored.sort((a, b) => (b.matchScore || 0) - (a.matchScore || 0));
+}
+
+export function getPairingRecommendation(
+  input: string, 
+  mode: 'meal-to-drink' | 'drink-to-meal',
+  hasSmoker: boolean
+) {
+  // Mock logic - would be AI powered in full app
+  const lower = input.toLowerCase();
   
-  if (mode === 'food-to-drink') {
-    const match = fallbackPairings.find(p => p.keywords.some(k => lowerInput.includes(k)));
-    if (match) {
+  if (mode === 'meal-to-drink') {
+    if (lower.includes('steak') || lower.includes('beef')) {
       return {
-        match: match.match,
-        description: match.desc,
-        image: cocktailImage
+        match: hasSmoker ? "Smoked Old Fashioned" : "Cabernet Sauvignon or Manhattan",
+        reason: "The rich fat of the steak needs tannins or high proof alcohol to cut through it. The smoke mirrors the char of the grill.",
+        wood: "Hickory or Oak"
+      };
+    }
+    if (lower.includes('fish') || lower.includes('sushi')) {
+      return {
+        match: "Gin & Tonic or Daiquiri",
+        reason: "Delicate seafood requires a crisp, high-acid drink that won't overpower the flavors.",
+        wood: "Alder (very light)"
+      };
+    }
+    if (lower.includes('taco') || lower.includes('mexican')) {
+      return {
+        match: "Margarita or Paloma",
+        reason: "Citrus and agave are the traditional and chemical soulmates of spicy, savory Mexican cuisine.",
+        wood: "Mesquite"
       };
     }
     return {
-      match: "Classic Highball",
-      description: "When in doubt, a crisp highball (whiskey ginger or gin tonic) pairs with almost anything.",
-      image: cocktailImage
+      match: "Classic Negroni",
+      reason: "A versatile aperitif that stimulates the appetite for almost any rich meal.",
+      wood: "Cherry"
     };
   } else {
-    // Drink to food logic (simplified)
-    if (lowerInput.includes("whiskey") || lowerInput.includes("old fashioned")) {
-      return { match: "Dry Aged Steak or Dark Chocolate", description: "Rich flavors complement the spirit's depth.", image: cocktailImage };
-    }
-    if (lowerInput.includes("gin") || lowerInput.includes("tonic")) {
-       return { match: "Oysters or Goat Cheese Salad", description: "Bright botanicals love fresh, tangy foods.", image: cocktailImage };
+    // Drink to meal
+    if (lower.includes('old fashioned') || lower.includes('whiskey')) {
+      return {
+        match: "Dark Chocolate Truffles or BBQ Ribs",
+        reason: "Whiskey's caramel notes bridge the gap to dessert, while its backbone stands up to heavy BBQ sauce.",
+        wood: "Pecan"
+      };
     }
     return {
-      match: "Bar Nuts & Olives",
-      description: "A classic salty snack is always a safe bet.",
-      image: cocktailImage
+      match: "Charcuterie Board",
+      reason: "Salty, fatty snacks are the universal pairing for cocktails.",
+      wood: "Apple"
     };
   }
-};
+}

@@ -9,6 +9,7 @@ import Home from "@/pages/home";
 import Inventory from "@/pages/inventory";
 import Make from "@/pages/make";
 import Pair from "@/pages/pair";
+import SmokerMode from "@/pages/smoker";
 
 function Router() {
   return (
@@ -18,6 +19,7 @@ function Router() {
         <Route path="/inventory" component={Inventory} />
         <Route path="/make" component={Make} />
         <Route path="/pair" component={Pair} />
+        <Route path="/smoker" component={SmokerMode} />
         <Route component={NotFound} />
       </Switch>
     </Layout>

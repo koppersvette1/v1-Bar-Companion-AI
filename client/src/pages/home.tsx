@@ -1,21 +1,21 @@
 import { useStore } from "@/lib/store";
-import { ArrowRight, Sparkles, Camera, Plus, FlaskConical } from "lucide-react";
+import { ArrowRight, Sparkles, Plus, FlaskConical, Flame, User, Info } from "lucide-react";
 import { Link } from "wouter";
 import bgImage from '@assets/generated_images/elegant_home_bar_background.png';
 import Onboarding from "@/components/onboarding";
 import { useState } from "react";
 import AddItemModal from "@/components/add-item-modal";
+import { cn } from "@/lib/utils";
 
 export default function Home() {
-  const { inventory, settings, updateSettings, loadDemoBar } = useStore();
+  const { inventory, userSettings, updateSettings, loadDemoData } = useStore();
   const [showAddItem, setShowAddItem] = useState(false);
+  
+  // Simple check for onboarding state (mocked)
+  const [hasOnboarded, setHasOnboarded] = useState(false);
 
-  const handleOnboardingComplete = () => {
-    updateSettings({ onboardingCompleted: true });
-  };
-
-  if (!settings.onboardingCompleted) {
-    return <Onboarding onComplete={handleOnboardingComplete} />;
+  if (!hasOnboarded && inventory.length === 0) {
+    return <Onboarding onComplete={() => setHasOnboarded(true)} />;
   }
   
   return (
@@ -34,15 +34,15 @@ export default function Home() {
         </div>
         
         <div className="relative z-10 max-w-lg mx-auto space-y-6">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 backdrop-blur-md">
-            <Sparkles className="w-3 h-3 text-primary" />
-            <span className="text-xs font-medium text-primary uppercase tracking-widest">
-              {settings.useOpenAi ? "AI Online" : "Demo Mode Active"}
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 backdrop-blur-md">
+            <User className="w-3 h-3 text-muted-foreground" />
+            <span className="text-xs font-medium text-white uppercase tracking-widest">
+              Welcome, {userSettings.name}
             </span>
           </div>
           
           <h1 className="text-4xl md:text-5xl font-serif font-bold text-white drop-shadow-lg leading-tight">
-            {inventory.length === 0 ? "Let's fill your bar." : "What are we drinking tonight?"}
+            {inventory.length === 0 ? "Let's build your bar." : "What are we drinking tonight?"}
           </h1>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
@@ -54,18 +54,17 @@ export default function Home() {
                     Make me a Drink
                   </a>
                 </Link>
-                <button 
-                  onClick={() => setShowAddItem(true)}
-                  className="inline-flex items-center justify-center gap-2 px-8 py-4 glass-panel text-white hover:bg-white/10 rounded-full font-bold transition-all hover:scale-105 active:scale-95"
-                >
-                  <Plus className="w-5 h-5" />
-                  Add Item
-                </button>
+                <Link href="/smoker">
+                  <a className="inline-flex items-center justify-center gap-2 px-8 py-4 glass-panel text-white hover:bg-white/10 rounded-full font-bold transition-all hover:scale-105 active:scale-95">
+                    <Flame className="w-5 h-5 text-orange-400" />
+                    Smoker Lab
+                  </a>
+                </Link>
               </>
             ) : (
                <div className="flex flex-col gap-3 w-full max-w-xs mx-auto">
                  <button 
-                  onClick={loadDemoBar}
+                  onClick={loadDemoData}
                   className="w-full inline-flex items-center justify-center gap-2 px-6 py-3 bg-primary text-primary-foreground rounded-full font-bold hover:bg-primary/90 transition-all"
                  >
                    <FlaskConical className="w-5 h-5" />
@@ -76,7 +75,7 @@ export default function Home() {
                    className="w-full inline-flex items-center justify-center gap-2 px-6 py-3 glass-panel text-white hover:bg-white/10 rounded-full font-bold"
                  >
                    <Plus className="w-5 h-5" />
-                   Add First Item
+                   Add First Bottle
                  </button>
                </div>
             )}
@@ -84,69 +83,65 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Quick Stats */}
+      {/* Feature Grid */}
       {inventory.length > 0 && (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 animate-in slide-in-from-bottom-4 duration-500 delay-100">
-          {[
-            { label: "Total Bottles", value: inventory.filter(i => i.category === 'spirit' || i.category === 'liqueur').length },
-            { label: "Possible Drinks", value: Math.floor(inventory.length * 1.5) }, // Fake calc for demo
-            { label: "Newest Addition", value: inventory[inventory.length - 1]?.name || "None" },
-            { label: "Favorites", value: "3" },
-          ].map((stat, i) => (
-            <div key={i} className="glass-card p-6 rounded-2xl flex flex-col items-start justify-between gap-4 hover:border-primary/30 transition-colors">
-              <span className="text-3xl font-serif font-bold text-white truncate w-full">{stat.value}</span>
-              <span className="text-xs text-muted-foreground uppercase tracking-wider font-medium">{stat.label}</span>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-in slide-in-from-bottom-4 duration-500 delay-100">
+          
+          {/* Quick Stats */}
+          <div className="glass-card p-6 rounded-2xl flex flex-col justify-between">
+            <div className="flex items-center justify-between mb-4">
+              <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">My Inventory</span>
+              <Link href="/inventory"><a className="text-xs text-primary hover:underline">Manage</a></Link>
             </div>
-          ))}
+            <div className="flex items-baseline gap-2">
+              <span className="text-4xl font-serif font-bold text-white">{inventory.length}</span>
+              <span className="text-sm text-muted-foreground">items</span>
+            </div>
+          </div>
+
+          {/* Smoker Status */}
+          <Link href="/smoker">
+            <a className={cn(
+              "glass-card p-6 rounded-2xl flex flex-col justify-between transition-all hover:bg-white/5 group border-l-4",
+              userSettings.hasSmoker ? "border-l-orange-500" : "border-l-transparent"
+            )}>
+              <div className="flex items-center justify-between mb-4">
+                <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground group-hover:text-orange-400 transition-colors">Smoker Status</span>
+                <Flame className={cn("w-4 h-4", userSettings.hasSmoker ? "text-orange-500" : "text-muted-foreground")} />
+              </div>
+              <div>
+                 <h3 className="font-bold text-white mb-1">
+                   {userSettings.hasSmoker ? "Ready to Smoke" : "Smoker Not Detected"}
+                 </h3>
+                 <p className="text-xs text-muted-foreground">
+                   {userSettings.hasSmoker ? "Tap to start a session" : "Tap to enable smoker mode"}
+                 </p>
+              </div>
+            </a>
+          </Link>
+
+          {/* Pairing */}
+          <Link href="/pair">
+            <a className="glass-card p-6 rounded-2xl flex flex-col justify-between transition-all hover:bg-white/5 group">
+              <div className="flex items-center justify-between mb-4">
+                <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground group-hover:text-primary transition-colors">Pairing Lab</span>
+                <ArrowRight className="w-4 h-4 text-muted-foreground group-hover:translate-x-1 transition-transform" />
+              </div>
+              <div>
+                 <h3 className="font-bold text-white mb-1">Find a Match</h3>
+                 <p className="text-xs text-muted-foreground">Pair drinks with your dinner.</p>
+              </div>
+            </a>
+          </Link>
+
         </div>
       )}
 
-      {/* Featured Suggestion */}
-      {inventory.length > 0 && (
-        <section className="space-y-4 animate-in slide-in-from-bottom-4 duration-500 delay-200">
-          <div className="flex items-center justify-between">
-            <h2 className="text-2xl font-serif font-semibold text-white">Suggested for You</h2>
-            <Link href="/make">
-              <a className="text-sm text-primary hover:text-primary/80 flex items-center gap-1 transition-colors">
-                View all <ArrowRight className="w-4 h-4" />
-              </a>
-            </Link>
-          </div>
-          
-          <div className="grid md:grid-cols-2 gap-6">
-            <Link href="/make">
-              <a className="glass-card p-6 rounded-2xl flex gap-6 items-center hover:bg-white/5 transition-colors cursor-pointer group">
-                <div className="w-24 h-24 rounded-xl bg-muted/20 overflow-hidden shrink-0">
-                   <div className="w-full h-full bg-gradient-to-br from-amber-900 to-amber-600 opacity-80" />
-                </div>
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-primary/20 text-primary uppercase">Whiskey</span>
-                    <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-orange-500/20 text-orange-400 uppercase">Smoked</span>
-                  </div>
-                  <h3 className="text-xl font-bold text-white group-hover:text-primary transition-colors">Maple Smoked Old Fashioned</h3>
-                  <p className="text-sm text-muted-foreground line-clamp-2">A rich twist on the classic using maple syrup and hickory smoke.</p>
-                </div>
-              </a>
-            </Link>
-            
-            <Link href="/make">
-               <a className="glass-card p-6 rounded-2xl flex gap-6 items-center hover:bg-white/5 transition-colors cursor-pointer group">
-                <div className="w-24 h-24 rounded-xl bg-muted/20 overflow-hidden shrink-0">
-                   <div className="w-full h-full bg-gradient-to-br from-red-900 to-red-600 opacity-80" />
-                </div>
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-primary/20 text-primary uppercase">Gin</span>
-                  </div>
-                  <h3 className="text-xl font-bold text-white group-hover:text-primary transition-colors">Negroni Sbagliato</h3>
-                  <p className="text-sm text-muted-foreground line-clamp-2">With prosecco in it. Stunningly refreshing.</p>
-                </div>
-              </a>
-            </Link>
-          </div>
-        </section>
-      )}
+      <div className="flex justify-center pt-8 opacity-50">
+        <p className="text-[10px] text-muted-foreground text-center max-w-sm">
+          BarBuddy v2.0 (Prototype) • Designed for Mixologists
+        </p>
+      </div>
     </div>
   );
 }

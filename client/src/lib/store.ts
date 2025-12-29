@@ -2,75 +2,129 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import cocktailImage from '@assets/generated_images/classic_old_fashioned_cocktail.png';
 
-export type Category = 'spirit' | 'liqueur' | 'bitters' | 'mixer' | 'garnish' | 'tool' | 'accessory';
+// --- Types ---
 
-export type Item = {
+export type Intensity = 'light' | 'medium' | 'bold' | 'very-strong';
+export type WoodName = 'Apple' | 'Cherry' | 'Oak' | 'Pecan' | 'Hickory' | 'Mesquite' | 'Maple' | 'Alder';
+
+export interface Wood {
+  name: WoodName;
+  intensity: Intensity;
+  recommendedTimeSecondsMin: number;
+  recommendedTimeSecondsMax: number;
+  purpose: string;
+  tastingNotes: string;
+  bestWithDrinkTags: string[];
+  bestWithFoodTags: string[];
+  isInMyKit: boolean;
+}
+
+export type Category = 'spirit' | 'liqueur' | 'bitters' | 'mixer' | 'syrup' | 'garnish' | 'tool' | 'accessory';
+
+export interface Item {
   id: string;
   name: string;
+  brand?: string;
   category: Category;
-  image?: string;
+  subtype?: string;
   abv?: number;
+  quantity: number; // 0-100% or count
   notes?: string;
-  quantity: number;
-};
+  image?: string;
+  dateAdded: number;
+}
 
-export type AppSettings = {
-  openAiKey?: string;
-  useOpenAi: boolean;
-  onboardingCompleted: boolean;
-};
+export interface UserSettings {
+  name: string;
+  hasSmoker: boolean;
+  smokerDeviceName?: string;
+  preferredIntensity: Intensity;
+}
 
-type Store = {
+export interface AppState {
   inventory: Item[];
-  settings: AppSettings;
+  woodLibrary: Wood[];
+  userSettings: UserSettings;
+  
+  // Actions
   addItem: (item: Item) => void;
-  removeItem: (id: string) => void;
   updateItem: (id: string, updates: Partial<Item>) => void;
-  loadDemoBar: () => void;
-  updateSettings: (updates: Partial<AppSettings>) => void;
-  resetStore: () => void;
-};
+  removeItem: (id: string) => void;
+  toggleWoodInKit: (woodName: WoodName) => void;
+  updateSettings: (updates: Partial<UserSettings>) => void;
+  loadDemoData: () => void;
+  reset: () => void;
+}
 
-const DEMO_ITEMS: Item[] = [
-  { id: 'd1', name: 'Bourbon Whiskey', category: 'spirit', image: cocktailImage, abv: 45, quantity: 1, notes: 'Woodford Reserve' },
-  { id: 'd2', name: 'Rye Whiskey', category: 'spirit', quantity: 1, notes: 'Rittenhouse' },
-  { id: 'd3', name: 'Sweet Vermouth', category: 'liqueur', quantity: 1, notes: 'Carpano Antica' },
-  { id: 'd4', name: 'Campari', category: 'liqueur', quantity: 1 },
-  { id: 'd5', name: 'Gin', category: 'spirit', quantity: 1, notes: 'Hendricks' },
-  { id: 'd6', name: 'Angostura Bitters', category: 'bitters', quantity: 1 },
-  { id: 'd7', name: 'Orange Bitters', category: 'bitters', quantity: 1 },
-  { id: 'd8', name: 'Cocktail Smoker', category: 'accessory', quantity: 1, notes: 'With Oak & Cherry chips' },
-  { id: 'd9', name: 'Oak Chips', category: 'accessory', quantity: 1, notes: 'Rich, bold smoke' },
-  { id: 'd10', name: 'Cherry Wood Dust', category: 'accessory', quantity: 1, notes: 'Sweet, mild smoke' },
-  { id: 'd11', name: 'Shaker Tin', category: 'tool', quantity: 1 },
-  { id: 'd12', name: 'Mixing Glass', category: 'tool', quantity: 1 },
-  { id: 'd13', name: 'Orange', category: 'garnish', quantity: 5 },
-  { id: 'd14', name: 'Lemon', category: 'garnish', quantity: 5 },
-  { id: 'd15', name: 'Simple Syrup', category: 'mixer', quantity: 1 },
+// --- Seed Data ---
+
+const SEED_WOODS: Wood[] = [
+  { name: 'Apple', intensity: 'light', recommendedTimeSecondsMin: 15, recommendedTimeSecondsMax: 20, purpose: 'Gentle sweet aroma', tastingNotes: 'Fruity, mild smoke', bestWithDrinkTags: ['sour', 'citrus', 'light'], bestWithFoodTags: ['chicken', 'pork', 'cheese'], isInMyKit: true },
+  { name: 'Cherry', intensity: 'medium', recommendedTimeSecondsMin: 12, recommendedTimeSecondsMax: 18, purpose: 'Sweet richness', tastingNotes: 'Sweet, fruity, rounded', bestWithDrinkTags: ['old-fashioned', 'manhattan', 'bourbon'], bestWithFoodTags: ['pork', 'duck', 'chocolate'], isInMyKit: true },
+  { name: 'Oak', intensity: 'medium', recommendedTimeSecondsMin: 8, recommendedTimeSecondsMax: 12, purpose: 'Barrel accent', tastingNotes: 'Vanilla, toast, woody', bestWithDrinkTags: ['neat', 'classic'], bestWithFoodTags: ['steak', 'beef', 'aged-cheese'], isInMyKit: true },
+  { name: 'Pecan', intensity: 'medium', recommendedTimeSecondsMin: 12, recommendedTimeSecondsMax: 15, purpose: 'Warm nutty', tastingNotes: 'Nutty, spicy, rich', bestWithDrinkTags: ['fall', 'maple'], bestWithFoodTags: ['turkey', 'squash', 'caramel'], isInMyKit: false },
+  { name: 'Hickory', intensity: 'bold', recommendedTimeSecondsMin: 5, recommendedTimeSecondsMax: 8, purpose: 'Savory bold', tastingNotes: 'Bacon-like, pungent, strong', bestWithDrinkTags: ['bloody-mary', 'bold'], bestWithFoodTags: ['brisket', 'ribs'], isInMyKit: true },
+  { name: 'Mesquite', intensity: 'very-strong', recommendedTimeSecondsMin: 5, recommendedTimeSecondsMax: 7, purpose: 'Aggressive campfire', tastingNotes: 'Earthy, sharp, intense', bestWithDrinkTags: ['mezcal', 'tequila'], bestWithFoodTags: ['tex-mex', 'steak'], isInMyKit: false },
+  { name: 'Maple', intensity: 'light', recommendedTimeSecondsMin: 10, recommendedTimeSecondsMax: 15, purpose: 'Toasted sugar', tastingNotes: 'Sweet, smooth, mild', bestWithDrinkTags: ['dessert', 'coffee', 'bourbon'], bestWithFoodTags: ['breakfast', 'dessert'], isInMyKit: false },
+  { name: 'Alder', intensity: 'light', recommendedTimeSecondsMin: 12, recommendedTimeSecondsMax: 15, purpose: 'Clean mild', tastingNotes: 'Neutral, light wood', bestWithDrinkTags: ['gin', 'vodka'], bestWithFoodTags: ['seafood', 'poultry'], isInMyKit: false },
 ];
 
-export const useStore = create<Store>()(
+const DEMO_INVENTORY: Item[] = [
+  { id: '1', name: 'Bourbon Whiskey', brand: 'Woodford Reserve', category: 'spirit', subtype: 'Bourbon', abv: 45, quantity: 1, dateAdded: Date.now(), image: cocktailImage },
+  { id: '2', name: 'Sweet Vermouth', brand: 'Carpano Antica', category: 'liqueur', subtype: 'Vermouth', quantity: 1, dateAdded: Date.now() },
+  { id: '3', name: 'Angostura Bitters', category: 'bitters', quantity: 1, dateAdded: Date.now() },
+  { id: '4', name: 'Campari', category: 'liqueur', subtype: 'Amaro', quantity: 1, dateAdded: Date.now() },
+  { id: '5', name: 'London Dry Gin', brand: 'Tanqueray', category: 'spirit', subtype: 'Gin', quantity: 1, dateAdded: Date.now() },
+  { id: '6', name: 'Simple Syrup', category: 'syrup', quantity: 1, dateAdded: Date.now() },
+  { id: '7', name: 'Cocktail Smoker', brand: 'Foghat', category: 'accessory', quantity: 1, dateAdded: Date.now() },
+];
+
+// --- Store ---
+
+export const useStore = create<AppState>()(
   persist(
     (set) => ({
       inventory: [],
-      settings: {
-        useOpenAi: false,
-        onboardingCompleted: false,
+      woodLibrary: SEED_WOODS,
+      userSettings: {
+        name: 'Guest',
+        hasSmoker: false,
+        preferredIntensity: 'medium',
       },
+
       addItem: (item) => set((state) => ({ inventory: [...state.inventory, item] })),
-      removeItem: (id) => set((state) => ({ inventory: state.inventory.filter((i) => i.id !== id) })),
-      updateItem: (id, updates) =>
-        set((state) => ({
-          inventory: state.inventory.map((i) => (i.id === id ? { ...i, ...updates } : i)),
-        })),
-      loadDemoBar: () => set((state) => ({ 
-        inventory: [...state.inventory, ...DEMO_ITEMS.filter(d => !state.inventory.find(i => i.name === d.name))] 
+      
+      updateItem: (id, updates) => set((state) => ({
+        inventory: state.inventory.map((i) => (i.id === id ? { ...i, ...updates } : i)),
       })),
-      updateSettings: (updates) => set((state) => ({ settings: { ...state.settings, ...updates } })),
-      resetStore: () => set({ inventory: [], settings: { useOpenAi: false, onboardingCompleted: false } }),
+      
+      removeItem: (id) => set((state) => ({
+        inventory: state.inventory.filter((i) => i.id !== id),
+      })),
+
+      toggleWoodInKit: (woodName) => set((state) => ({
+        woodLibrary: state.woodLibrary.map((w) => 
+          w.name === woodName ? { ...w, isInMyKit: !w.isInMyKit } : w
+        ),
+      })),
+
+      updateSettings: (updates) => set((state) => ({
+        userSettings: { ...state.userSettings, ...updates }
+      })),
+
+      loadDemoData: () => set((state) => ({
+        inventory: DEMO_INVENTORY,
+        userSettings: { ...state.userSettings, hasSmoker: true }
+      })),
+
+      reset: () => set({
+        inventory: [],
+        woodLibrary: SEED_WOODS,
+        userSettings: { name: 'Guest', hasSmoker: false, preferredIntensity: 'medium' }
+      })
     }),
     {
-      name: 'my-bar-storage-v2',
+      name: 'barbuddy-storage',
     }
   )
 );
