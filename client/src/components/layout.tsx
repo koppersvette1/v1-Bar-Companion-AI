@@ -14,20 +14,20 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   ];
 
   return (
-    <div className="min-h-screen flex flex-col font-sans pb-20 md:pb-0 texture-overlay" style={{ background: 'var(--bg)', color: 'var(--text)' }}>
+    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans selection:bg-orange-500 selection:text-white pb-20 md:pb-0">
       
       {/* Mobile Header */}
-      <header className="sticky top-0 z-50 glass-panel px-4 py-3 flex items-center justify-between md:hidden pt-safe">
-        <Link href="/" className="flex items-center gap-2 group touch-target">
-          <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ background: 'linear-gradient(135deg, var(--accent) 0%, #A8884A 100%)' }}>
-            <Flame className="w-5 h-5" style={{ color: 'var(--bg)' }} />
-          </div>
-          <span className="text-xl font-display font-semibold tracking-wider brass-text">
+      <header className="sticky top-0 z-50 bg-slate-900/80 backdrop-blur-md border-b border-slate-800 px-4 py-3 flex items-center justify-between md:hidden">
+        <Link href="/">
+          <a className="text-xl font-serif font-bold tracking-tight text-orange-500 flex items-center gap-2">
+            <Flame className="w-5 h-5 fill-orange-500/20" />
             BarBuddy
-          </span>
+          </a>
         </Link>
-        <Link href="/settings" className="p-2.5 rounded-lg hover:bg-[var(--surface2)] transition-colors touch-target">
-          <Settings className="w-5 h-5" style={{ color: 'var(--muted-text)' }} />
+        <Link href="/settings">
+          <a className="p-2 rounded-full hover:bg-white/5 active:bg-white/10 transition-colors">
+            <Settings className="w-5 h-5 text-slate-400" />
+          </a>
         </Link>
       </header>
 
@@ -35,108 +35,81 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       <div className="flex-1 flex flex-col md:flex-row max-w-7xl mx-auto w-full">
         
         {/* Desktop Sidebar */}
-        <aside className="hidden md:flex w-64 flex-col gap-6 p-6 sticky top-0 h-screen border-r" style={{ borderColor: 'var(--border-color)', background: 'var(--surface)' }}>
-          <div className="mb-4">
-            <Link href="/" className="flex items-center gap-3 group">
-              <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ background: 'linear-gradient(135deg, var(--accent) 0%, #A8884A 100%)' }}>
-                <Flame className="w-6 h-6" style={{ color: 'var(--bg)' }} />
-              </div>
-              <div>
-                <span className="text-xl font-display font-semibold tracking-wider brass-text block">
-                  BarBuddy
-                </span>
-                <span className="text-[10px] uppercase tracking-widest" style={{ color: 'var(--muted-text)' }}>Est. 2024</span>
-              </div>
+        <aside className="hidden md:flex w-64 flex-col gap-6 p-6 sticky top-0 h-screen border-r border-slate-800 bg-slate-950/50">
+          <div className="mb-2">
+            <Link href="/">
+              <a className="text-2xl font-serif font-bold text-orange-500 tracking-tight flex items-center gap-2">
+                <Flame className="w-7 h-7 fill-orange-500/20" />
+                BarBuddy
+              </a>
             </Link>
-          </div>
-          
-          {/* Deco Divider */}
-          <div className="deco-divider text-xs uppercase tracking-widest" style={{ color: 'var(--accent)' }}>
-            <div className="deco-divider-icon" />
+            <p className="text-xs text-slate-500 mt-1 ml-9">Hybrid Intelligence</p>
           </div>
 
           <nav className="flex flex-col gap-1">
             {navItems.map((item) => (
-              <Link 
-                key={item.href} 
-                href={item.href}
-                className={cn(
-                  "flex items-center gap-3 px-4 py-3 rounded-lg tab-transition group font-medium text-sm",
+              <Link key={item.href} href={item.href}>
+                <a className={cn(
+                  "flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 group font-medium text-sm",
                   location === item.href 
-                    ? "brass-border brass-glow-subtle" 
-                    : "hover:bg-[var(--surface2)]"
-                )}
-                style={{ 
-                  color: location === item.href ? 'var(--accent)' : 'var(--muted-text)',
-                  background: location === item.href ? 'rgba(198, 161, 91, 0.1)' : 'transparent'
-                }}
-              >
-                <item.icon className="w-4 h-4" style={{ color: location === item.href ? 'var(--accent)' : 'var(--muted-text)' }} />
-                {item.label}
+                    ? "bg-orange-500/10 text-orange-500 shadow-sm ring-1 ring-orange-500/20" 
+                    : "text-slate-400 hover:text-slate-100 hover:bg-slate-900"
+                )}>
+                  <item.icon className={cn("w-4 h-4 transition-colors", location === item.href ? "text-orange-500" : "text-slate-500 group-hover:text-slate-300")} />
+                  {item.label}
+                </a>
               </Link>
             ))}
             
-            <div className="my-3 border-t" style={{ borderColor: 'var(--border-color)' }} />
+            <div className="my-2 border-t border-slate-800" />
             
-            <Link 
-              href="/favorites"
-              className={cn(
-                "flex items-center gap-3 px-4 py-3 rounded-lg tab-transition group font-medium text-sm",
-                location === "/favorites" ? "brass-border brass-glow-subtle" : "hover:bg-[var(--surface2)]"
-              )}
-              style={{ 
-                color: location === "/favorites" ? 'var(--accent)' : 'var(--muted-text)',
-                background: location === "/favorites" ? 'rgba(198, 161, 91, 0.1)' : 'transparent'
-              }}
-            >
-              <BookHeart className="w-4 h-4" />
-              Favorites
+            <Link href="/favorites">
+               <a className={cn(
+                  "flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 group font-medium text-sm",
+                  location === "/favorites" 
+                    ? "bg-orange-500/10 text-orange-500" 
+                    : "text-slate-400 hover:text-slate-100 hover:bg-slate-900"
+                )}>
+                  <BookHeart className="w-4 h-4 text-slate-500 group-hover:text-slate-300" />
+                  Favorites
+               </a>
             </Link>
-            <Link 
-              href="/settings"
-              className={cn(
-                "flex items-center gap-3 px-4 py-3 rounded-lg tab-transition group font-medium text-sm",
-                location === "/settings" ? "brass-border brass-glow-subtle" : "hover:bg-[var(--surface2)]"
-              )}
-              style={{ 
-                color: location === "/settings" ? 'var(--accent)' : 'var(--muted-text)',
-                background: location === "/settings" ? 'rgba(198, 161, 91, 0.1)' : 'transparent'
-              }}
-            >
-              <Settings className="w-4 h-4" />
-              Settings
+             <Link href="/settings">
+               <a className={cn(
+                  "flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 group font-medium text-sm",
+                  location === "/settings" 
+                    ? "bg-orange-500/10 text-orange-500" 
+                    : "text-slate-400 hover:text-slate-100 hover:bg-slate-900"
+                )}>
+                  <Settings className="w-4 h-4 text-slate-500 group-hover:text-slate-300" />
+                  Settings
+               </a>
             </Link>
           </nav>
         </aside>
 
         {/* Main Content */}
         <main className="flex-1 p-4 md:p-8 overflow-y-auto min-h-screen">
-          <div className="max-w-4xl mx-auto fade-in">
+          <div className="max-w-4xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500">
             {children}
           </div>
         </main>
       </div>
 
       {/* Mobile Bottom Nav */}
-      <nav className="fixed bottom-0 left-0 right-0 glass-panel pb-safe md:hidden z-50">
-        <div className="flex items-center justify-around py-2 px-1">
+      <nav className="fixed bottom-0 left-0 right-0 bg-slate-900/90 backdrop-blur-xl border-t border-slate-800 pb-safe md:hidden z-50">
+        <div className="flex items-center justify-around p-1">
           {navItems.map((item) => (
-            <Link 
-              key={item.href} 
-              href={item.href}
-              className={cn(
-                "flex flex-col items-center gap-0.5 py-2 px-3 rounded-xl tab-transition touch-target"
-              )}
-              style={{ color: location === item.href ? 'var(--accent)' : 'var(--muted-text)' }}
-            >
-              <item.icon 
-                className={cn("w-6 h-6 transition-all", location === item.href && "drop-shadow-[0_0_8px_var(--accent-glow)]")} 
-                strokeWidth={location === item.href ? 2.5 : 1.75} 
-              />
-              <span className="text-[11px] font-medium tracking-wide">{item.label}</span>
-              {location === item.href && (
-                <div className="w-4 h-0.5 rounded-full mt-0.5" style={{ background: 'var(--accent)' }} />
-              )}
+            <Link key={item.href} href={item.href}>
+              <a className={cn(
+                "flex flex-col items-center gap-1 p-2 rounded-xl transition-all duration-200 min-w-[60px]",
+                location === item.href 
+                  ? "text-orange-500" 
+                  : "text-slate-500 active:text-slate-300"
+              )}>
+                <item.icon className={cn("w-6 h-6", location === item.href && "fill-current/20")} strokeWidth={location === item.href ? 2.5 : 2} />
+                <span className="text-[10px] font-medium">{item.label}</span>
+              </a>
             </Link>
           ))}
         </div>

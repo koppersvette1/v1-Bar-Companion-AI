@@ -1,6 +1,7 @@
 import { useStore } from "@/lib/store";
-import { User, Settings as SettingsIcon, DollarSign, Calculator, Trash2 } from "lucide-react";
+import { Settings as SettingsIcon, DollarSign, Calculator, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { cn } from "@/lib/utils";
 
 export default function Settings() {
   const { settings, updateSettings, reset } = useStore();
@@ -83,4 +84,3 @@ export default function Settings() {
     </div>
   );
 }
-import { cn } from "@/lib/utils";

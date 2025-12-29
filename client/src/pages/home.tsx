@@ -10,61 +10,44 @@ export default function Home() {
   const [showAddModal, setShowAddModal] = useState(false);
 
   return (
-    <div className="space-y-8 pb-safe">
+    <div className="space-y-8 pb-24">
       <AddItemModal open={showAddModal} onOpenChange={setShowAddModal} />
 
       {/* Hero */}
-      <section className="relative overflow-hidden rounded-2xl card-speakeasy min-h-[320px] flex items-center justify-center p-6 md:p-8 text-center">
-        <div className="absolute inset-0 bg-gradient-to-br from-[var(--accent)]/5 via-transparent to-[var(--surface2)] z-0" />
-        <div className="absolute inset-0 opacity-5 z-0" style={{ backgroundImage: "url(\"data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23C6A15B' fill-opacity='0.15'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E\")" }} />
+      <section className="relative overflow-hidden rounded-3xl bg-slate-900 border border-slate-800 min-h-[350px] flex items-center justify-center p-8 text-center">
+        <div className="absolute inset-0 bg-gradient-to-br from-orange-950/20 to-slate-950 z-0" />
+        <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-5 z-0" />
 
         <div className="relative z-10 max-w-md space-y-6">
-           {/* Deco Badge */}
-           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full" style={{ background: 'var(--surface2)', border: '1px solid var(--border-color)' }}>
-             <div className="w-1.5 h-1.5 rounded-full" style={{ background: 'var(--accent)' }} />
-             <span className="text-xs font-semibold uppercase tracking-widest" style={{ color: 'var(--accent)' }}>
-               Hybrid Intelligence
-             </span>
-             <div className="w-1.5 h-1.5 rounded-full" style={{ background: 'var(--accent)' }} />
+           <div className="inline-block px-3 py-1 rounded-full bg-slate-800 border border-slate-700 text-xs font-bold uppercase tracking-wider text-slate-300">
+             Hybrid Intelligence
            </div>
            
-           <h1 data-testid="text-hero-title">
-             {inventory.length === 0 ? "Let's Build Your Bar" : "What Are We Drinking?"}
+           <h1 className="text-5xl font-serif font-bold text-white leading-tight">
+             {inventory.length === 0 ? "Let's build your bar." : "What are we drinking?"}
            </h1>
 
-           <div className="flex flex-col sm:flex-row gap-4 justify-center pt-2">
+           <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
               {inventory.length === 0 ? (
                 <>
-                  <button 
-                    onClick={loadSeedData} 
-                    className="btn-brass px-6 py-3 rounded-xl flex items-center justify-center gap-2 touch-target"
-                    data-testid="button-load-demo"
-                  >
+                  <button onClick={loadSeedData} className="px-6 py-3 bg-orange-500 text-white font-bold rounded-xl shadow-lg shadow-orange-500/20 hover:scale-105 transition-transform flex items-center justify-center gap-2">
                     <FlaskConical className="w-5 h-5" /> Load Demo Data
                   </button>
-                  <button 
-                    onClick={() => setShowAddModal(true)} 
-                    className="btn-outline-brass px-6 py-3 rounded-xl flex items-center justify-center gap-2 touch-target"
-                    data-testid="button-scan-bottle"
-                  >
+                  <button onClick={() => setShowAddModal(true)} className="px-6 py-3 bg-slate-800 text-white font-bold rounded-xl hover:bg-slate-700 transition-colors flex items-center justify-center gap-2">
                     <ScanLine className="w-5 h-5" /> Scan First Bottle
                   </button>
                 </>
               ) : (
                 <>
-                  <Link 
-                    href="/cocktails" 
-                    className="btn-brass px-6 py-4 rounded-xl flex items-center justify-center gap-2 touch-target"
-                    data-testid="button-generate-drink"
-                  >
-                    <Sparkles className="w-5 h-5" /> Generate Drink
+                  <Link href="/cocktails">
+                    <a className="px-8 py-4 bg-orange-500 text-white font-bold rounded-xl shadow-lg shadow-orange-500/20 hover:scale-105 transition-transform flex items-center justify-center gap-2">
+                      <Sparkles className="w-5 h-5" /> Generate Drink
+                    </a>
                   </Link>
-                  <Link 
-                    href="/smoker"
-                    className="btn-outline-brass px-6 py-4 rounded-xl flex items-center justify-center gap-2 touch-target"
-                    data-testid="button-smoker-lab"
-                  >
-                    <Flame className="w-5 h-5" /> Smoker Lab
+                  <Link href="/smoker">
+                     <a className="px-8 py-4 bg-slate-800 text-white font-bold rounded-xl hover:bg-slate-700 transition-colors flex items-center justify-center gap-2">
+                       <Flame className="w-5 h-5 text-orange-400" /> Smoker Lab
+                     </a>
                   </Link>
                 </>
               )}
@@ -77,57 +60,50 @@ export default function Home() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
            
            {/* Inventory Card */}
-           <div className="card-speakeasy card-hover p-6 group">
+           <div className="p-6 bg-slate-900 border border-slate-800 rounded-2xl hover:border-orange-500/30 transition-colors group">
               <div className="flex justify-between items-start mb-4">
-                 <div className="p-3 rounded-xl" style={{ background: 'var(--surface2)' }}>
-                   <FlaskConical className="w-6 h-6" style={{ color: 'var(--accent2)' }} />
+                 <div className="p-3 bg-slate-800 rounded-xl group-hover:bg-slate-700 transition-colors">
+                   <FlaskConical className="w-6 h-6 text-slate-300" />
                  </div>
-                 <Link 
-                   href="/inventory"
-                   className="text-xs font-semibold uppercase tracking-wider flex items-center gap-1 transition-colors touch-target"
-                   style={{ color: 'var(--muted-text)' }}
-                   data-testid="link-manage-inventory"
-                 >
-                   Manage <ArrowRight className="w-3 h-3" />
+                 <Link href="/inventory">
+                   <a className="text-xs font-bold uppercase tracking-wider text-slate-500 group-hover:text-white flex items-center gap-1">
+                     Manage <ArrowRight className="w-3 h-3" />
+                   </a>
                  </Link>
               </div>
-              <h2 className="text-3xl mb-1" data-testid="text-inventory-count">{inventory.length}</h2>
-              <p style={{ color: 'var(--muted-text)' }}>Bottles & tools in stock</p>
+              <div className="text-3xl font-bold text-white mb-1">{inventory.length}</div>
+              <p className="text-sm text-slate-400">Bottles & tools in stock</p>
            </div>
 
            {/* Smoker Status */}
-           <Link 
-             href="/smoker"
-             className="card-speakeasy card-hover p-6 group block cursor-pointer"
-             data-testid="card-smoker-status"
-           >
-              <div className="flex justify-between items-start mb-4">
-                 <div className="p-3 rounded-xl transition-colors" style={{ background: settings.hasSmoker ? 'rgba(198, 161, 91, 0.15)' : 'var(--surface2)' }}>
-                   <Flame className={cn("w-6 h-6")} style={{ color: settings.hasSmoker ? 'var(--accent)' : 'var(--muted-text)' }} />
-                 </div>
-                 {settings.hasSmoker && <div className="w-2 h-2 rounded-full animate-pulse" style={{ background: 'var(--success)' }} />}
-              </div>
-              <h3 className="mb-1">
-                {settings.hasSmoker ? "Smoker Ready" : "Setup Smoker"}
-              </h3>
-              <p style={{ color: 'var(--muted-text)' }}>
-                {settings.hasSmoker ? "Guided sessions active" : "Enable to unlock features"}
-              </p>
+           <Link href="/smoker">
+             <a className="p-6 bg-slate-900 border border-slate-800 rounded-2xl hover:border-orange-500/30 transition-colors group block cursor-pointer">
+                <div className="flex justify-between items-start mb-4">
+                   <div className="p-3 bg-slate-800 rounded-xl group-hover:bg-orange-500/20 transition-colors">
+                     <Flame className={cn("w-6 h-6", settings.hasSmoker ? "text-orange-500" : "text-slate-500")} />
+                   </div>
+                   {settings.hasSmoker && <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />}
+                </div>
+                <div className="text-lg font-bold text-white mb-1">
+                  {settings.hasSmoker ? "Smoker Ready" : "Setup Smoker"}
+                </div>
+                <p className="text-sm text-slate-400">
+                  {settings.hasSmoker ? "Guided sessions active" : "Enable to unlock features"}
+                </p>
+             </a>
            </Link>
 
            {/* Pairing */}
-           <Link 
-             href="/pair"
-             className="card-speakeasy card-hover p-6 group block cursor-pointer"
-             data-testid="card-pairing-lab"
-           >
-              <div className="flex justify-between items-start mb-4">
-                 <div className="p-3 rounded-xl" style={{ background: 'rgba(31, 107, 74, 0.15)' }}>
-                   <UtensilsCrossed className="w-6 h-6" style={{ color: 'var(--success)' }} />
-                 </div>
-              </div>
-              <h3 className="mb-1">Pairing Lab</h3>
-              <p style={{ color: 'var(--muted-text)' }}>Find matches for dinner</p>
+           <Link href="/pair">
+             <a className="p-6 bg-slate-900 border border-slate-800 rounded-2xl hover:border-purple-500/30 transition-colors group block cursor-pointer">
+                <div className="flex justify-between items-start mb-4">
+                   <div className="p-3 bg-slate-800 rounded-xl group-hover:bg-purple-500/20 transition-colors">
+                     <UtensilsCrossed className="w-6 h-6 text-purple-400" />
+                   </div>
+                </div>
+                <div className="text-lg font-bold text-white mb-1">Pairing Lab</div>
+                <p className="text-sm text-slate-400">Find matches for dinner</p>
+             </a>
            </Link>
         </div>
       )}

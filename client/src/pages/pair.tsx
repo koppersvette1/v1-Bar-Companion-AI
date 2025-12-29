@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useStore } from "@/lib/store";
-import { UtensilsCrossed, ArrowRight, Wind } from "lucide-react";
+import { UtensilsCrossed, Search, ArrowRight, Info, Wine, Wind } from "lucide-react";
 import { generatePairing } from "@/lib/logic/pairing";
 import { cn } from "@/lib/utils";
 
@@ -21,75 +21,49 @@ export default function Pair() {
   };
 
   return (
-    <div className="max-w-xl mx-auto space-y-8 pb-safe">
+    <div className="max-w-xl mx-auto space-y-8 pb-24">
        <div className="text-center">
-         <h1 className="mb-2" data-testid="text-page-title">Pairing Lab</h1>
-         <p style={{ color: 'var(--muted-text)' }}>Discover flavor affinities.</p>
+         <h1 className="text-3xl font-serif font-bold text-white mb-2">Pairing Lab</h1>
+         <p className="text-slate-400">Discover flavor affinities.</p>
        </div>
 
-       {/* Mode Toggle */}
-       <div className="p-1.5 rounded-full flex" style={{ background: 'var(--surface2)', border: '1px solid var(--border-color)' }}>
-         <button 
-           onClick={() => setMode('meal-to-drink')} 
-           className={cn("flex-1 py-3 rounded-full font-semibold tab-transition touch-target")}
-           style={{ 
-             background: mode === 'meal-to-drink' ? 'var(--accent)' : 'transparent',
-             color: mode === 'meal-to-drink' ? 'var(--bg)' : 'var(--muted-text)',
-             boxShadow: mode === 'meal-to-drink' ? 'var(--shadow-glow)' : 'none'
-           }}
-           data-testid="button-mode-meal-to-drink"
-         >
+       <div className="bg-slate-900 p-1 rounded-full flex">
+         <button onClick={() => setMode('meal-to-drink')} className={cn("flex-1 py-2 rounded-full text-sm font-bold transition-all", mode === 'meal-to-drink' ? "bg-orange-500 text-white" : "text-slate-500")}>
            Meal → Drink
          </button>
-         <button 
-           onClick={() => setMode('drink-to-meal')} 
-           className={cn("flex-1 py-3 rounded-full font-semibold tab-transition touch-target")}
-           style={{ 
-             background: mode === 'drink-to-meal' ? 'var(--accent)' : 'transparent',
-             color: mode === 'drink-to-meal' ? 'var(--bg)' : 'var(--muted-text)',
-             boxShadow: mode === 'drink-to-meal' ? 'var(--shadow-glow)' : 'none'
-           }}
-           data-testid="button-mode-drink-to-meal"
-         >
+         <button onClick={() => setMode('drink-to-meal')} className={cn("flex-1 py-2 rounded-full text-sm font-bold transition-all", mode === 'drink-to-meal' ? "bg-orange-500 text-white" : "text-slate-500")}>
            Drink → Meal
          </button>
        </div>
 
-       {/* Input */}
        <div className="relative">
          <input 
            value={input}
            onChange={e => setInput(e.target.value)}
            placeholder={mode === 'meal-to-drink' ? "e.g. Ribeye, Thai Curry..." : "e.g. Cabernet, Old Fashioned..."}
-           className="input-speakeasy w-full rounded-2xl p-5 text-lg text-center"
+           className="w-full bg-slate-900 border border-slate-800 rounded-2xl p-6 text-xl text-center text-white focus:ring-2 focus:ring-orange-500 outline-none placeholder:text-slate-600"
            onKeyDown={e => e.key === 'Enter' && handlePair()}
-           data-testid="input-pairing"
          />
-         <button 
-           onClick={handlePair} 
-           className="absolute right-4 top-1/2 -translate-y-1/2 btn-brass p-3 rounded-full touch-target"
-           data-testid="button-pair"
-         >
+         <button onClick={handlePair} className="absolute right-4 top-1/2 -translate-y-1/2 p-2 bg-slate-800 rounded-full text-white hover:bg-orange-500 transition-colors">
            <ArrowRight className="w-5 h-5" />
          </button>
        </div>
 
-       {/* Result */}
        {result && (
-         <div className="card-speakeasy p-8 text-center scale-in" data-testid="card-result">
-            <div className="w-16 h-16 rounded-full mx-auto flex items-center justify-center mb-6 brass-glow" style={{ background: 'linear-gradient(135deg, var(--accent) 0%, var(--success) 100%)' }}>
-              <UtensilsCrossed className="w-8 h-8" style={{ color: 'var(--bg)' }} />
+         <div className="bg-slate-900 border border-slate-800 rounded-3xl p-8 text-center animate-in zoom-in-95">
+            <div className="w-16 h-16 bg-gradient-to-br from-orange-500 to-purple-600 rounded-full mx-auto flex items-center justify-center mb-6">
+              <UtensilsCrossed className="w-8 h-8 text-white" />
             </div>
             
-            <h2 className="mb-3">{result.match}</h2>
-            <p className="mb-6" style={{ color: 'var(--muted-text)' }}>{result.reason}</p>
+            <h2 className="text-2xl font-serif font-bold text-white mb-2">{result.match}</h2>
+            <p className="text-slate-400 mb-6">{result.reason}</p>
 
             {result.woodRecommendation && (
-              <div className="rounded-xl p-4 text-left flex gap-3" style={{ background: 'rgba(198, 161, 91, 0.1)', border: '1px solid rgba(198, 161, 91, 0.2)' }}>
-                 <Wind className="w-5 h-5 flex-shrink-0 mt-0.5" style={{ color: 'var(--accent)' }} />
+              <div className="bg-orange-950/30 border border-orange-500/20 rounded-xl p-4 text-left flex gap-3">
+                 <Wind className="w-5 h-5 text-orange-500 flex-shrink-0" />
                  <div>
-                   <p className="font-semibold mb-1" style={{ color: 'var(--accent)' }}>Smoker Pairing</p>
-                   <p className="text-sm" style={{ color: 'var(--muted-text)' }}>
+                   <h4 className="font-bold text-orange-400 text-sm">Smoker Pairing</h4>
+                   <p className="text-xs text-orange-200/70 mt-1">
                      Try {result.woodRecommendation.wood}: {result.woodRecommendation.reason}
                    </p>
                  </div>

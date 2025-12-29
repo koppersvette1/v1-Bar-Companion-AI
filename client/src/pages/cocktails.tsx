@@ -8,7 +8,7 @@ import { validateRecipe } from "@/lib/logic/rules";
 import DebugPanel from "@/components/debug-panel";
 
 export default function Cocktails() {
-  const { recipes } = useStore();
+  const { recipes } = useStore(); // Seed recipes from Zustand
   const { data: people = [] } = usePeople();
   const { data: favoriteIds = [], isLoading: favoritesLoading } = useFavorites();
   const toggleFavorite = useToggleFavorite();
@@ -20,12 +20,14 @@ export default function Cocktails() {
 
   const selectedPerson = people.find((p: any) => p.id === selectedPersonId) || null;
   
+  // 1. Filter
   let displayRecipes = recipes.filter(r => {
     if (filter === 'smoky' && !r.isSmoked) return false;
     if (filter === 'classic' && r.style !== 'classic') return false;
     return true;
   });
 
+  // 2. Rank (Learning)
   displayRecipes = rankRecipesForPerson(displayRecipes, selectedPerson);
 
   const handleToggleFavorite = (recipeId: string) => {
@@ -40,52 +42,51 @@ export default function Cocktails() {
   };
 
   return (
-    <div className="space-y-6 pb-safe">
+    <div className="space-y-6 pb-24">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
-           <h1 data-testid="text-page-title">Cocktails</h1>
-           <p className="mt-1" style={{ color: 'var(--muted-text)' }}>Library & Generator</p>
+           <h1 className="text-3xl font-serif font-bold text-white" data-testid="text-page-title">Cocktails</h1>
+           <p className="text-slate-400 text-sm">Library & Generator</p>
         </div>
         
-        <div className="flex gap-2 items-center">
+        <div className="flex gap-2">
+           {/* Debug Toggle (Dev Only) */}
            <button 
              onClick={handleToggleDebug}
-             className={cn("p-2.5 rounded-xl tab-transition touch-target", settings?.debugMode ? "brass-glow-subtle" : "")}
-             style={{ 
-               background: settings?.debugMode ? 'rgba(198, 161, 91, 0.15)' : 'var(--surface2)',
-               color: settings?.debugMode ? 'var(--accent)' : 'var(--muted-text)',
-               border: settings?.debugMode ? '1px solid var(--accent)' : '1px solid var(--border-color)'
-             }}
+             className={cn("p-2 rounded-xl border transition-colors", settings?.debugMode ? "bg-orange-500/20 text-orange-500 border-orange-500" : "bg-slate-900 text-slate-600 border-slate-800")}
              data-testid="button-toggle-debug"
            >
              <Bug className="w-4 h-4" />
            </button>
 
+           {/* Person Selector */}
            {people.length > 0 && (
-            <div className="flex items-center gap-2 p-1.5 rounded-xl" style={{ background: 'var(--surface2)', border: '1px solid var(--border-color)' }}>
-               <span className="text-xs font-semibold uppercase tracking-wider px-2" style={{ color: 'var(--muted-text)' }}>For:</span>
+            <div className="flex items-center gap-2 bg-slate-900 p-1 rounded-xl border border-slate-800">
+               <span className="text-xs font-bold uppercase text-slate-500 px-2">For:</span>
                <select 
-                 className="bg-transparent font-medium focus:outline-none touch-target"
-                 style={{ color: 'var(--text)', fontSize: '1rem' }}
+                 className="bg-transparent text-white text-sm font-bold focus:outline-none"
                  onChange={(e) => setSelectedPersonId(e.target.value || null)}
                  data-testid="select-person"
                >
                  <option value="">Everyone</option>
                  {people.map((p: any) => <option key={p.id} value={p.id}>{p.name}</option>)}
                </select>
-               <User className="w-4 h-4" style={{ color: 'var(--accent)' }} />
+               <User className="w-4 h-4 text-orange-500" />
             </div>
           )}
         </div>
       </div>
 
       {/* Filters */}
-      <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-none">
+      <div className="flex gap-2 overflow-x-auto pb-2">
          {['all', 'classic', 'smoky'].map(f => (
            <button 
              key={f}
              onClick={() => setFilter(f as any)}
-             className={cn("chip-speakeasy capitalize touch-target", filter === f && "active")}
+             className={cn(
+               "px-4 py-2 rounded-full text-xs font-bold uppercase tracking-wider border transition-colors",
+               filter === f ? "bg-white text-black border-white" : "bg-transparent text-slate-500 border-slate-800"
+             )}
              data-testid={`button-filter-${f}`}
            >
              {f}
@@ -100,70 +101,61 @@ export default function Cocktails() {
            const isFav = favoriteIds.includes(recipe.id);
 
            return (
-             <div key={recipe.id} className="card-speakeasy card-hover overflow-hidden group" data-testid={`card-recipe-${recipe.id}`}>
+             <div key={recipe.id} className="bg-slate-900 border border-slate-800 rounded-3xl overflow-hidden group hover:border-orange-500/30 transition-colors" data-testid={`card-recipe-${recipe.id}`}>
                 <div className="aspect-video relative">
-                   <img src="https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?auto=format&fit=crop&q=80" className="absolute inset-0 w-full h-full object-cover opacity-70 group-hover:opacity-90 transition-opacity" alt={recipe.name} />
-                   <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, var(--surface) 0%, transparent 100%)' }} />
+                   <img src="https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?auto=format&fit=crop&q=80" className="absolute inset-0 w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity" alt={recipe.name} />
+                   <div className="absolute inset-0 bg-gradient-to-t from-slate-900 to-transparent" />
                    
                    <div className="absolute bottom-4 left-4 right-4">
-                      <div className="flex gap-2 mb-2 flex-wrap">
-                        <span className="badge-brass">{recipe.baseSpirit}</span>
-                        {recipe.isSmoked && (
-                          <span className="badge-brass flex items-center gap-1" style={{ background: 'var(--accent)', color: 'var(--bg)' }}>
-                            <Wind className="w-3 h-3" /> Smoked
-                          </span>
-                        )}
+                      <div className="flex gap-2 mb-2">
+                        <span className="text-[10px] font-bold uppercase bg-white/10 backdrop-blur-md px-2 py-1 rounded text-white">{recipe.baseSpirit}</span>
+                        {recipe.isSmoked && <span className="text-[10px] font-bold uppercase bg-orange-500/80 backdrop-blur-md px-2 py-1 rounded text-white flex items-center gap-1"><Wind className="w-3 h-3" /> Smoked</span>}
                         {selectedPerson && recipe._score && recipe._score > 0 && (
-                          <span className="badge-brass" style={{ background: 'rgba(31, 107, 74, 0.9)' }} data-testid={`badge-match-${recipe.id}`}>
+                          <span className="text-[10px] font-bold uppercase bg-green-500/20 text-green-400 px-2 py-1 rounded flex items-center gap-1" data-testid={`badge-match-${recipe.id}`}>
                              {recipe._score}% Match
                           </span>
                         )}
                       </div>
-                      <h3 data-testid={`text-name-${recipe.id}`}>{recipe.name}</h3>
+                      <h3 className="text-2xl font-serif font-bold text-white" data-testid={`text-name-${recipe.id}`}>{recipe.name}</h3>
                    </div>
 
                    <button 
                      onClick={() => handleToggleFavorite(recipe.id)}
-                     className={cn("absolute top-4 right-4 p-2.5 rounded-full tab-transition touch-target")}
-                     style={{ 
-                       background: isFav ? 'var(--danger)' : 'rgba(0,0,0,0.5)',
-                       backdropFilter: 'blur(8px)',
-                       color: 'var(--text)'
-                     }}
+                     className={cn("absolute top-4 right-4 p-2 rounded-full backdrop-blur-md transition-colors", isFav ? "bg-red-500 text-white" : "bg-black/30 text-white hover:bg-black/50")}
                      disabled={favoritesLoading || toggleFavorite.isPending}
                      data-testid={`button-favorite-${recipe.id}`}
                    >
-                     <Heart className={cn("w-5 h-5", isFav && "fill-current")} />
+                     <Heart className={cn("w-4 h-4", isFav && "fill-current")} />
                    </button>
                 </div>
 
-                <div className="p-5 space-y-4">
-                   <p className="line-clamp-2" style={{ color: 'var(--muted-text)' }}>{recipe.description}</p>
+                <div className="p-6 space-y-4">
+                   <p className="text-sm text-slate-400 line-clamp-2">{recipe.description}</p>
                    
-                   <div className="space-y-2">
+                   {/* Ingredients Preview */}
+                   <div className="space-y-1">
                      {recipe.ingredients.slice(0,3).map((ing, i) => (
                        <div key={i} className="flex justify-between text-sm">
-                         <span style={{ color: 'var(--text)' }}>{ing.name}</span>
-                         <span style={{ color: 'var(--muted-text)' }}>{ing.amount}</span>
+                         <span className="text-slate-300">{ing.name}</span>
+                         <span className="text-slate-500">{ing.amount}</span>
                        </div>
                      ))}
                    </div>
 
+                   {/* Warnings/Guardrails */}
                    {warnings.length > 0 && (
-                     <div className="p-3 rounded-lg flex gap-2 items-start" style={{ background: 'rgba(139, 44, 44, 0.15)', border: '1px solid rgba(139, 44, 44, 0.3)' }}>
-                       <span style={{ color: 'var(--accent)' }}>⚠</span>
-                       <p className="text-sm" style={{ color: 'var(--text)' }}>{warnings[0]}</p>
+                     <div className="p-3 bg-yellow-500/10 border border-yellow-500/20 rounded-lg flex gap-2 items-start">
+                       <div className="w-4 h-4 text-yellow-500 flex-shrink-0 mt-0.5">ⓘ</div>
+                       <p className="text-xs text-yellow-200/80">{warnings[0]}</p>
                      </div>
                    )}
                    
+                   {/* Debug Panel (Only if Enabled) */}
                    {settings?.debugMode && selectedPerson && (
                      <DebugPanel recipe={recipe} />
                    )}
 
-                   <button 
-                     className="btn-outline-brass w-full py-3 rounded-xl"
-                     data-testid={`button-view-${recipe.id}`}
-                   >
+                   <button className="w-full py-3 bg-slate-800 hover:bg-white text-white hover:text-black font-bold rounded-xl transition-colors flex items-center justify-center gap-2" data-testid={`button-view-${recipe.id}`}>
                      View Recipe
                    </button>
                 </div>
