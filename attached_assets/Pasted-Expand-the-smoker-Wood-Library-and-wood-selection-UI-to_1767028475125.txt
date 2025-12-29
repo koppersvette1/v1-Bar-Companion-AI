@@ -1,0 +1,39 @@
+Expand the smoker “Wood Library” and wood selection UI to include the additional wood profiles we discussed, and ensure they participate in recommendations and learning.
+
+A) Seed these additional woods (editable defaults, enabled by default unless noted):
+- Pear (light, 12–16s): elegant fruit/floral, wine-like spritz and gin; foods: cheese/salads/light dishes
+- Peach (light, 12–16s): stone-fruit summer sweetness; spritz/sours; foods: grilled chicken/fruit desserts
+- Walnut (medium-strong, 8–12s): deep nutty/dry/earthy; OF/amaro/vermouth; foods: roasted meats/mushrooms
+- Olive wood (medium, 8–12s): savory/mediterranean/earthy; martini-style, mezcal riffs; foods: lamb, olives, grilled veg
+- Beech (light-medium, 10–14s): clean/european/neutral; versatile; foods: poultry/seafood/cheese
+- Grapevine (medium, 8–12s): wine-barrel adjacent, tannic/structured; negroni/vermouth/wine-like; foods: charcuterie/steak
+- Rosemary (garnishOnly, 5–8s): piney/herbal aroma; gin/citrus; foods: lamb/roasted veg
+- Cinnamon (garnishOnly, 5–8s): warm spice aroma; bourbon/rum/winter; foods: desserts/holiday
+
+B) Ensure fields exist and are filled:
+- intensity
+- time min/max
+- purpose
+- tastingNotes
+- flavorTags (chips)
+- bestWithDrinkTags
+- bestWithFoodTags
+- avoidWithDrinkTags
+- beginnerSafe
+- methodRestriction (garnishOnly for rosemary/cinnamon)
+
+C) UI Updates:
+- In Settings → Smoker → Wood Library:
+  - show all woods (original 8 + these new ones)
+  - allow enable/disable, edit, add custom wood profile
+- In cocktail pages wood picker:
+  - include the new woods (respect methodRestriction)
+  - show “why this wood” and recommended time
+  - if garnishOnly wood selected, automatically set method to garnish smoke and disable other methods with an explanation
+
+D) Recommendation + Learning:
+- Update wood scoring to include these new woods automatically (no hardcoding to 8).
+- Ensure learning can build affinity for these woods per person.
+
+Deliverable:
+New woods appear in the wood library and smoker selection UI, behave correctly with method restrictions, and are used in recommendations/learning.

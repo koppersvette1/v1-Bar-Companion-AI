@@ -125,6 +125,8 @@ export interface AppState {
   // Woods
   toggleWoodKit: (woodId: string) => void;
   updateWood: (id: string, updates: Partial<Wood>) => void;
+  addWood: (wood: Omit<Wood, 'id' | 'isCustom'>) => void;
+  deleteWood: (woodId: string) => void;
 
   // People
   addPerson: (person: Omit<PersonProfile, 'id' | 'tasteWeights'>) => void;
@@ -157,7 +159,14 @@ const SEED_WOODS: Wood[] = [
   { id: 'wood-pecan', name: 'Pecan', intensity: 'medium', timeMin: 12, timeMax: 15, purpose: 'Warm nutty', tastingNotes: 'Nutty, spicy, rich', flavorTags: ['nutty', 'spicy'], bestWithDrinkTags: ['fall', 'maple', 'rum'], bestWithFoodTags: ['turkey', 'squash', 'caramel'], avoidWithDrinkTags: [], beginnerSafe: true, isInMyKit: false },
   { id: 'wood-maple', name: 'Maple', intensity: 'light', timeMin: 10, timeMax: 15, purpose: 'Toasted sugar', tastingNotes: 'Sweet, smooth, mild', flavorTags: ['sweet', 'toasty'], bestWithDrinkTags: ['dessert', 'coffee', 'bourbon'], bestWithFoodTags: ['breakfast', 'dessert'], avoidWithDrinkTags: ['savory'], beginnerSafe: true, isInMyKit: false },
   { id: 'wood-alder', name: 'Alder', intensity: 'light', timeMin: 12, timeMax: 15, purpose: 'Clean mild', tastingNotes: 'Neutral, light wood', flavorTags: ['clean', 'neutral'], bestWithDrinkTags: ['gin', 'vodka', 'martini'], bestWithFoodTags: ['seafood', 'poultry'], avoidWithDrinkTags: ['heavy'], beginnerSafe: true, isInMyKit: false },
-  { id: 'wood-rosemary', name: 'Rosemary', intensity: 'medium', timeMin: 5, timeMax: 10, purpose: 'Herbal aromatic', tastingNotes: 'Piney, fresh', flavorTags: ['herbal', 'fresh'], bestWithDrinkTags: ['gin', 'citrus'], bestWithFoodTags: ['lamb', 'potatoes'], avoidWithDrinkTags: ['sweet', 'creamy'], beginnerSafe: true, isInMyKit: false, methodRestriction: 'garnishOnly' },
+  { id: 'wood-rosemary', name: 'Rosemary', intensity: 'light', timeMin: 5, timeMax: 8, purpose: 'Herbal aromatic garnish', tastingNotes: 'Piney, herbal aroma', flavorTags: ['herbal', 'piney', 'fresh'], bestWithDrinkTags: ['gin', 'citrus', 'martini'], bestWithFoodTags: ['lamb', 'roasted-veg', 'potatoes'], avoidWithDrinkTags: ['sweet', 'creamy'], beginnerSafe: true, isInMyKit: false, methodRestriction: 'garnishOnly' },
+  { id: 'wood-pear', name: 'Pear', intensity: 'light', timeMin: 12, timeMax: 16, purpose: 'Elegant fruit/floral', tastingNotes: 'Elegant fruit, floral, wine-like', flavorTags: ['fruity', 'floral', 'elegant'], bestWithDrinkTags: ['spritz', 'gin', 'white-wine', 'light'], bestWithFoodTags: ['cheese', 'salads', 'light-dishes'], avoidWithDrinkTags: ['bold', 'smoky'], beginnerSafe: true, isInMyKit: true },
+  { id: 'wood-peach', name: 'Peach', intensity: 'light', timeMin: 12, timeMax: 16, purpose: 'Stone-fruit summer sweetness', tastingNotes: 'Stone-fruit, summer sweetness', flavorTags: ['fruity', 'sweet', 'summer'], bestWithDrinkTags: ['spritz', 'sour', 'summer', 'bellini'], bestWithFoodTags: ['grilled-chicken', 'fruit-desserts', 'salads'], avoidWithDrinkTags: ['bold', 'bitter'], beginnerSafe: true, isInMyKit: true },
+  { id: 'wood-walnut', name: 'Walnut', intensity: 'bold', timeMin: 8, timeMax: 12, purpose: 'Deep nutty/earthy', tastingNotes: 'Deep nutty, dry, earthy', flavorTags: ['nutty', 'earthy', 'dry'], bestWithDrinkTags: ['old-fashioned', 'amaro', 'vermouth', 'bourbon'], bestWithFoodTags: ['roasted-meats', 'mushrooms', 'aged-cheese'], avoidWithDrinkTags: ['light', 'fruity', 'delicate'], beginnerSafe: false, isInMyKit: true },
+  { id: 'wood-olive', name: 'Olive', intensity: 'medium', timeMin: 8, timeMax: 12, purpose: 'Savory/mediterranean', tastingNotes: 'Savory, mediterranean, earthy', flavorTags: ['savory', 'mediterranean', 'earthy'], bestWithDrinkTags: ['martini', 'mezcal', 'gin', 'vermouth'], bestWithFoodTags: ['lamb', 'olives', 'grilled-veg', 'mediterranean'], avoidWithDrinkTags: ['sweet', 'fruity'], beginnerSafe: true, isInMyKit: true },
+  { id: 'wood-beech', name: 'Beech', intensity: 'medium', timeMin: 10, timeMax: 14, purpose: 'Clean/European/neutral', tastingNotes: 'Clean, european, neutral smoke', flavorTags: ['clean', 'neutral', 'european'], bestWithDrinkTags: ['versatile', 'gin', 'vodka', 'whiskey'], bestWithFoodTags: ['poultry', 'seafood', 'cheese'], avoidWithDrinkTags: [], beginnerSafe: true, isInMyKit: true },
+  { id: 'wood-grapevine', name: 'Grapevine', intensity: 'medium', timeMin: 8, timeMax: 12, purpose: 'Wine-barrel adjacent', tastingNotes: 'Tannic, structured, wine-like', flavorTags: ['tannic', 'wine-like', 'structured'], bestWithDrinkTags: ['negroni', 'vermouth', 'wine-like', 'amaro'], bestWithFoodTags: ['charcuterie', 'steak', 'aged-cheese'], avoidWithDrinkTags: ['sweet', 'light'], beginnerSafe: true, isInMyKit: true },
+  { id: 'wood-cinnamon', name: 'Cinnamon', intensity: 'light', timeMin: 5, timeMax: 8, purpose: 'Warm spice aroma', tastingNotes: 'Warm spice, holiday aroma', flavorTags: ['spicy', 'warm', 'holiday'], bestWithDrinkTags: ['bourbon', 'rum', 'winter', 'dessert'], bestWithFoodTags: ['desserts', 'holiday', 'apple-pie'], avoidWithDrinkTags: ['savory', 'bitter'], beginnerSafe: true, isInMyKit: false, methodRestriction: 'garnishOnly' },
 ];
 
 const SEED_RECIPES: Recipe[] = [
@@ -254,6 +263,12 @@ export const useStore = create<AppState>()(
       })),
       updateWood: (id, updates) => set((state) => ({
         woodLibrary: state.woodLibrary.map((w) => (w.id === id ? { ...w, ...updates } : w))
+      })),
+      addWood: (wood) => set((state) => ({
+        woodLibrary: [...state.woodLibrary, { ...wood, id: `wood-custom-${uuidv4()}`, isCustom: true }]
+      })),
+      deleteWood: (woodId) => set((state) => ({
+        woodLibrary: state.woodLibrary.filter((w) => w.id !== woodId)
       })),
 
       // People
