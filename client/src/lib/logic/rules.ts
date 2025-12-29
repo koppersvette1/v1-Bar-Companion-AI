@@ -28,17 +28,21 @@ export const SMOKER_RULES = {
   ]
 };
 
-export function getSafeSmokeTime(woodName: string, intensity: Intensity): number {
-  const cap = SMOKER_RULES.caps[woodName as keyof typeof SMOKER_RULES.caps] || SMOKER_RULES.caps['default'];
+export function getSafeSmokeTime(woodName: string, intensity: Intensity, timeMax?: number): number {
+  const hardcodedCap = SMOKER_RULES.caps[woodName as keyof typeof SMOKER_RULES.caps];
+  const cap = timeMax || hardcodedCap || SMOKER_RULES.caps['default'];
   
-  // Base times
   let time = 10;
-  if (intensity === 'light') time = Math.floor(cap * 0.5);
-  else if (intensity === 'medium') time = Math.floor(cap * 0.75);
-  else if (intensity === 'bold') time = cap; // Max cap
-  else if (intensity === 'very-strong') time = cap; // Cannot exceed cap
+  if (intensity === 'light') time = Math.floor(cap * 0.8);
+  else if (intensity === 'medium') time = Math.floor(cap * 0.9);
+  else if (intensity === 'bold') time = cap;
+  else if (intensity === 'very-strong') time = Math.min(cap, 7);
 
-  return Math.max(5, time); // Minimum 5s
+  return Math.max(5, Math.min(time, cap));
+}
+
+export function getSafeSmokeTimeForWood(wood: { name: string; intensity: Intensity; timeMin: number; timeMax: number }): number {
+  return getSafeSmokeTime(wood.name, wood.intensity, wood.timeMax);
 }
 
 export function validateRecipe(recipe: any): string[] {
