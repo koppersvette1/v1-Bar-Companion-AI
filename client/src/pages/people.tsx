@@ -56,23 +56,21 @@ export default function People() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-24">
-        <div style={{ color: 'var(--muted-text)' }}>Loading...</div>
+        <div className="w-8 h-8 rounded-full border-2 border-t-transparent animate-spin" style={{ borderColor: 'var(--accent)', borderTopColor: 'transparent' }} />
       </div>
     );
   }
 
   return (
-    <div className="space-y-6 pb-24">
+    <div className="space-y-6 pb-safe">
       <div className="flex items-center justify-between">
          <div>
-           <h1 className="text-3xl font-display font-semibold tracking-wide" style={{ color: 'var(--text)' }} data-testid="text-page-title">
-             Profiles
-           </h1>
-           <p className="text-sm mt-1" style={{ color: 'var(--muted-text)' }}>Manage taste preferences for friends & family</p>
+           <h1 data-testid="text-page-title">Profiles</h1>
+           <p className="mt-1" style={{ color: 'var(--muted-text)' }}>Manage taste preferences for friends & family</p>
          </div>
          <button 
            onClick={() => setShowAdd(true)} 
-           className="btn-brass px-4 py-2 rounded-lg text-sm flex items-center gap-2"
+           className="btn-brass px-4 py-2.5 rounded-xl flex items-center gap-2 touch-target"
            data-testid="button-add-person"
          >
            <Plus className="w-4 h-4" /> Add Person
@@ -80,50 +78,49 @@ export default function People() {
       </div>
 
       {showAdd && (
-        <div className="card-speakeasy p-6 space-y-4 animate-in fade-in slide-in-from-top-4">
-           <div className="flex justify-between items-center mb-2">
-             <h3 className="font-display font-medium tracking-wide" style={{ color: 'var(--text)' }}>New Profile</h3>
-             <button onClick={() => setShowAdd(false)} data-testid="button-close-form">
-               <X className="w-4 h-4" style={{ color: 'var(--muted-text)' }} />
+        <div className="card-speakeasy p-6 space-y-5 scale-in">
+           <div className="flex justify-between items-center">
+             <h3>New Profile</h3>
+             <button onClick={() => setShowAdd(false)} className="p-2 rounded-lg touch-target" style={{ color: 'var(--muted-text)' }} data-testid="button-close-form">
+               <X className="w-5 h-5" />
              </button>
            </div>
 
            {/* Quick Templates */}
-           <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-none">
+           <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-none">
              {TEMPLATES.map(t => (
                <button 
                  key={t.name}
                  onClick={() => applyTemplate(t)}
-                 className="flex-shrink-0 px-3 py-2 rounded-xl text-left transition-colors group"
-                 style={{ background: 'var(--surface2)', border: '1px solid var(--border-color)' }}
+                 className="card-speakeasy card-hover flex-shrink-0 px-4 py-3 text-left touch-target"
                  data-testid={`button-template-${t.name.toLowerCase().replace(/\s/g, '-')}`}
                >
-                 <div className="text-xs font-semibold flex items-center gap-1" style={{ color: 'var(--accent)' }}>
+                 <div className="text-xs font-semibold flex items-center gap-1 mb-1" style={{ color: 'var(--accent)' }}>
                    <Zap className="w-3 h-3" /> {t.name}
                  </div>
-                 <div className="text-[10px]" style={{ color: 'var(--muted-text)' }}>{t.desc}</div>
+                 <div className="text-xs" style={{ color: 'var(--muted-text)' }}>{t.desc}</div>
                </button>
              ))}
            </div>
            
-           <div className="space-y-1">
+           <div className="space-y-2">
              <label className="text-xs uppercase font-semibold tracking-wider" style={{ color: 'var(--muted-text)' }}>Name</label>
              <input 
                value={name} 
                onChange={e => setName(e.target.value)} 
-               className="input-speakeasy w-full rounded-lg p-3"
+               className="input-speakeasy w-full rounded-xl p-3"
                placeholder="e.g. Sarah"
                data-testid="input-person-name"
              />
            </div>
 
            <div className="grid grid-cols-2 gap-4">
-             <div className="space-y-1">
+             <div className="space-y-2">
                <label className="text-xs uppercase font-semibold tracking-wider" style={{ color: 'var(--muted-text)' }}>Sweetness</label>
                <select 
                  value={sweetness} 
                  onChange={e => setSweetness(e.target.value as any)} 
-                 className="input-speakeasy w-full rounded-lg p-3 text-sm"
+                 className="input-speakeasy w-full rounded-xl p-3 touch-target"
                  data-testid="select-sweetness"
                >
                  <option value="dry">Dry</option>
@@ -131,12 +128,12 @@ export default function People() {
                  <option value="sweet">Sweet</option>
                </select>
              </div>
-             <div className="space-y-1">
+             <div className="space-y-2">
                <label className="text-xs uppercase font-semibold tracking-wider" style={{ color: 'var(--muted-text)' }}>ABV Comfort</label>
                <select 
                  value={abv} 
                  onChange={e => setAbv(e.target.value as any)} 
-                 className="input-speakeasy w-full rounded-lg p-3 text-sm"
+                 className="input-speakeasy w-full rounded-xl p-3 touch-target"
                  data-testid="select-abv"
                >
                  <option value="low">Low (Session)</option>
@@ -156,8 +153,7 @@ export default function People() {
 
            <button 
              onClick={handleCreate} 
-             className="w-full py-3 rounded-lg font-semibold transition-colors"
-             style={{ background: 'var(--surface2)', color: 'var(--text)', border: '1px solid var(--border-color)' }}
+             className="btn-brass w-full py-3 rounded-xl touch-target"
              data-testid="button-create-person"
            >
              Create Profile
@@ -174,17 +170,17 @@ export default function People() {
         )}
 
         {people.map((p: any) => (
-          <div key={p.id} className="card-speakeasy p-6 relative group" data-testid={`card-person-${p.id}`}>
+          <div key={p.id} className="card-speakeasy card-hover p-5 relative group" data-testid={`card-person-${p.id}`}>
              <button 
                onClick={() => deletePerson.mutate(p.id)} 
-               className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity"
-               style={{ color: 'var(--muted-text)' }}
+               className="absolute top-4 right-4 p-2 rounded-lg opacity-0 group-hover:opacity-100 tab-transition touch-target"
+               style={{ color: 'var(--danger)', background: 'rgba(139, 44, 44, 0.1)' }}
                data-testid={`button-delete-${p.id}`}
              >
-               <Trash2 className="w-4 h-4 hover:text-[var(--danger)]" />
+               <Trash2 className="w-4 h-4" />
              </button>
              
-             <div className="flex items-center gap-3 mb-4">
+             <div className="flex items-center gap-4 mb-4">
                <div 
                  className="w-12 h-12 rounded-full flex items-center justify-center text-xl font-display font-semibold"
                  style={{ background: 'linear-gradient(135deg, var(--accent) 0%, #A8884A 100%)', color: 'var(--bg)' }}
@@ -192,7 +188,7 @@ export default function People() {
                  {p.name[0]}
                </div>
                <div>
-                 <h3 className="font-display font-medium text-lg" style={{ color: 'var(--text)' }} data-testid={`text-name-${p.id}`}>{p.name}</h3>
+                 <h3 className="mb-0.5" data-testid={`text-name-${p.id}`}>{p.name}</h3>
                  <div className="flex gap-2 text-xs" style={{ color: 'var(--muted-text)' }}>
                    <span className="capitalize">{p.sweetnessPref}</span>
                    <span>•</span>
@@ -203,13 +199,13 @@ export default function People() {
 
              <div className="flex flex-wrap gap-2">
                {p.likedTags?.map((t: string) => (
-                 <span key={t} className="chip-speakeasy active text-[10px]">{t}</span>
+                 <span key={t} className="chip-speakeasy active text-xs">{t}</span>
                ))}
                {p.dislikedTags?.map((t: string) => (
-                 <span key={t} className="chip-speakeasy text-[10px] line-through" style={{ color: 'var(--danger)' }}>{t}</span>
+                 <span key={t} className="chip-speakeasy text-xs line-through" style={{ color: 'var(--danger)' }}>{t}</span>
                ))}
                {(!p.likedTags || p.likedTags.length === 0) && (!p.dislikedTags || p.dislikedTags.length === 0) && (
-                 <span className="text-xs italic" style={{ color: 'var(--muted-text)' }}>No taste data yet...</span>
+                 <span className="text-sm italic" style={{ color: 'var(--muted-text)' }}>No taste data yet...</span>
                )}
              </div>
           </div>

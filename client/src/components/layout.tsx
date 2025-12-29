@@ -17,16 +17,16 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     <div className="min-h-screen flex flex-col font-sans pb-20 md:pb-0 texture-overlay" style={{ background: 'var(--bg)', color: 'var(--text)' }}>
       
       {/* Mobile Header */}
-      <header className="sticky top-0 z-50 glass-panel px-4 py-3 flex items-center justify-between md:hidden">
-        <Link href="/" className="flex items-center gap-2 group">
-          <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: 'linear-gradient(135deg, var(--accent) 0%, #A8884A 100%)' }}>
+      <header className="sticky top-0 z-50 glass-panel px-4 py-3 flex items-center justify-between md:hidden pt-safe">
+        <Link href="/" className="flex items-center gap-2 group touch-target">
+          <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ background: 'linear-gradient(135deg, var(--accent) 0%, #A8884A 100%)' }}>
             <Flame className="w-5 h-5" style={{ color: 'var(--bg)' }} />
           </div>
           <span className="text-xl font-display font-semibold tracking-wider brass-text">
             BarBuddy
           </span>
         </Link>
-        <Link href="/settings" className="p-2 rounded-lg hover:bg-[var(--surface2)] transition-colors">
+        <Link href="/settings" className="p-2.5 rounded-lg hover:bg-[var(--surface2)] transition-colors touch-target">
           <Settings className="w-5 h-5" style={{ color: 'var(--muted-text)' }} />
         </Link>
       </header>
@@ -61,9 +61,9 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                 key={item.href} 
                 href={item.href}
                 className={cn(
-                  "flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 group font-medium text-sm",
+                  "flex items-center gap-3 px-4 py-3 rounded-lg tab-transition group font-medium text-sm",
                   location === item.href 
-                    ? "brass-border" 
+                    ? "brass-border brass-glow-subtle" 
                     : "hover:bg-[var(--surface2)]"
                 )}
                 style={{ 
@@ -81,8 +81,8 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             <Link 
               href="/favorites"
               className={cn(
-                "flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 group font-medium text-sm",
-                location === "/favorites" ? "brass-border" : "hover:bg-[var(--surface2)]"
+                "flex items-center gap-3 px-4 py-3 rounded-lg tab-transition group font-medium text-sm",
+                location === "/favorites" ? "brass-border brass-glow-subtle" : "hover:bg-[var(--surface2)]"
               )}
               style={{ 
                 color: location === "/favorites" ? 'var(--accent)' : 'var(--muted-text)',
@@ -95,8 +95,8 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             <Link 
               href="/settings"
               className={cn(
-                "flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 group font-medium text-sm",
-                location === "/settings" ? "brass-border" : "hover:bg-[var(--surface2)]"
+                "flex items-center gap-3 px-4 py-3 rounded-lg tab-transition group font-medium text-sm",
+                location === "/settings" ? "brass-border brass-glow-subtle" : "hover:bg-[var(--surface2)]"
               )}
               style={{ 
                 color: location === "/settings" ? 'var(--accent)' : 'var(--muted-text)',
@@ -111,7 +111,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
         {/* Main Content */}
         <main className="flex-1 p-4 md:p-8 overflow-y-auto min-h-screen">
-          <div className="max-w-4xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500">
+          <div className="max-w-4xl mx-auto fade-in">
             {children}
           </div>
         </main>
@@ -119,23 +119,23 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
       {/* Mobile Bottom Nav */}
       <nav className="fixed bottom-0 left-0 right-0 glass-panel pb-safe md:hidden z-50">
-        <div className="flex items-center justify-around p-1">
+        <div className="flex items-center justify-around py-2 px-1">
           {navItems.map((item) => (
             <Link 
               key={item.href} 
               href={item.href}
               className={cn(
-                "flex flex-col items-center gap-1 p-2 rounded-xl transition-all duration-200 min-w-[60px]"
+                "flex flex-col items-center gap-0.5 py-2 px-3 rounded-xl tab-transition touch-target"
               )}
               style={{ color: location === item.href ? 'var(--accent)' : 'var(--muted-text)' }}
             >
               <item.icon 
-                className={cn("w-6 h-6", location === item.href && "drop-shadow-[0_0_8px_var(--accent-glow)]")} 
-                strokeWidth={location === item.href ? 2.5 : 2} 
+                className={cn("w-6 h-6 transition-all", location === item.href && "drop-shadow-[0_0_8px_var(--accent-glow)]")} 
+                strokeWidth={location === item.href ? 2.5 : 1.75} 
               />
-              <span className="text-[10px] font-medium tracking-wide">{item.label}</span>
+              <span className="text-[11px] font-medium tracking-wide">{item.label}</span>
               {location === item.href && (
-                <div className="w-1 h-1 rounded-full" style={{ background: 'var(--accent)' }} />
+                <div className="w-4 h-0.5 rounded-full mt-0.5" style={{ background: 'var(--accent)' }} />
               )}
             </Link>
           ))}

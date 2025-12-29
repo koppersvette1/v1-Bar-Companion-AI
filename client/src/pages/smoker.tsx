@@ -1,5 +1,5 @@
 import { useStore } from "@/lib/store";
-import { Flame, Wind, Play, Info, RotateCcw, Plus, Check } from "lucide-react";
+import { Flame, Wind, Play, RotateCcw, Plus, Check } from "lucide-react";
 import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { getSafeSmokeTime } from "@/lib/logic/rules";
@@ -45,13 +45,13 @@ export default function Smoker() {
         <div className="w-24 h-24 rounded-full flex items-center justify-center mb-6" style={{ background: 'rgba(198, 161, 91, 0.15)' }}>
           <Flame className="w-12 h-12" style={{ color: 'var(--accent)' }} />
         </div>
-        <h2 className="text-2xl font-display font-semibold tracking-wide mb-2" style={{ color: 'var(--text)' }}>Unlock Smoker Mode</h2>
+        <h2 className="mb-3">Unlock Smoker Mode</h2>
         <p className="max-w-sm mb-6" style={{ color: 'var(--muted-text)' }}>
           Enable this feature to get wood pairings, safety timers, and guided smoking sessions for your cocktails.
         </p>
         <button 
           onClick={() => updateSettings({ hasSmoker: true })}
-          className="btn-brass px-6 py-3 rounded-xl"
+          className="btn-brass px-6 py-3 rounded-xl touch-target"
           data-testid="button-enable-smoker"
         >
           I Have a Smoker
@@ -63,33 +63,33 @@ export default function Smoker() {
   const activeWoodObj = woodLibrary.find(w => w.id === activeWood);
 
   return (
-    <div className="space-y-8 pb-20">
+    <div className="space-y-8 pb-safe">
       
       <div className="flex items-center justify-between">
          <div>
-           <h1 className="text-3xl font-display font-semibold tracking-wide flex items-center gap-3" style={{ color: 'var(--text)' }}>
+           <h1 className="flex items-center gap-3">
              <Wind className="w-8 h-8" style={{ color: 'var(--muted-text)' }} />
              Smoker Lab
            </h1>
-           <p className="text-sm mt-1" style={{ color: 'var(--muted-text)' }}>Wood profiles & guided sessions</p>
+           <p className="mt-1" style={{ color: 'var(--muted-text)' }}>Wood profiles & guided sessions</p>
          </div>
       </div>
 
       {/* Active Session Card */}
       {phase !== 'idle' && activeWoodObj ? (
-        <div className="card-speakeasy p-8 text-center relative overflow-hidden" style={{ borderColor: 'var(--accent)' }}>
+        <div className="card-speakeasy p-8 text-center relative overflow-hidden glow-pulse" style={{ borderColor: 'var(--accent)' }}>
            <div className="absolute inset-0 animate-pulse" style={{ background: 'rgba(198, 161, 91, 0.05)' }} />
            <div className="relative z-10">
-             <div className="inline-block px-4 py-2 rounded-full text-xs font-semibold uppercase tracking-widest mb-6" style={{ background: 'rgba(198, 161, 91, 0.2)', color: 'var(--accent)' }}>
+             <div className="badge-brass inline-flex mb-6 text-sm" style={{ background: 'rgba(198, 161, 91, 0.2)' }}>
                {phase === 'smoking' ? 'Apply Smoke' : 'Let it Rest'}
              </div>
              
-             <div className="text-8xl font-mono font-bold mb-2" style={{ color: 'var(--text)' }}>{timer}s</div>
+             <div className="text-7xl md:text-8xl font-mono font-bold mb-3" style={{ color: 'var(--text)' }}>{timer}s</div>
              <p className="mb-8" style={{ color: 'var(--muted-text)' }}>
                {phase === 'smoking' ? `Torching ${activeWoodObj.name} chips...` : "Allowing smoke to infuse..."}
              </p>
 
-             <button onClick={cancelSession} className="flex items-center gap-2 mx-auto text-sm hover:opacity-80" style={{ color: 'var(--muted-text)' }}>
+             <button onClick={cancelSession} className="btn-ghost flex items-center gap-2 mx-auto px-4 py-2 rounded-lg touch-target">
                <RotateCcw className="w-4 h-4" /> Cancel Session
              </button>
            </div>
@@ -99,27 +99,27 @@ export default function Smoker() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {woodLibrary.map(wood => (
             <div key={wood.id} className={cn(
-               "card-speakeasy p-6 relative group transition-all",
+               "card-speakeasy card-hover p-5 relative group",
                !wood.isInMyKit && "opacity-50"
             )} data-testid={`card-wood-${wood.id}`}>
                <div className="flex justify-between items-start mb-4">
                  <div>
-                   <h3 className="text-xl font-display font-medium" style={{ color: 'var(--text)' }}>{wood.name}</h3>
-                   <div className="flex items-center gap-2 mt-1">
+                   <h3 className="mb-1">{wood.name}</h3>
+                   <div className="flex items-center gap-2">
                      <span className={cn(
                        "text-[10px] font-semibold uppercase tracking-wider",
                        wood.intensity === 'light' ? "text-[var(--success)]" : 
                        wood.intensity === 'medium' ? "text-[var(--accent)]" : "text-[var(--danger)]"
                      )}>{wood.intensity}</span>
                      {wood.beginnerSafe && (
-                       <span className="text-[10px] px-1.5 py-0.5 rounded" style={{ color: 'var(--muted-text)', border: '1px solid var(--border-color)' }}>SAFE</span>
+                       <span className="badge-brass">SAFE</span>
                      )}
                    </div>
                  </div>
                  
                  <button 
                    onClick={() => toggleWoodKit(wood.id)}
-                   className={cn("p-2 rounded-full transition-colors")}
+                   className={cn("p-2.5 rounded-full tab-transition touch-target")}
                    style={{ 
                      background: wood.isInMyKit ? 'rgba(198, 161, 91, 0.15)' : 'var(--surface2)',
                      color: wood.isInMyKit ? 'var(--accent)' : 'var(--muted-text)'
@@ -130,25 +130,25 @@ export default function Smoker() {
                  </button>
                </div>
 
-               <p className="text-sm mb-4" style={{ color: 'var(--muted-text)' }}>{wood.tastingNotes}</p>
+               <p className="mb-4" style={{ color: 'var(--muted-text)' }}>{wood.tastingNotes}</p>
                
-               <div className="flex flex-wrap gap-1 mb-4">
+               <div className="flex flex-wrap gap-1.5 mb-4">
                  {wood.flavorTags.map(tag => (
-                   <span key={tag} className="chip-speakeasy text-[10px]">{tag}</span>
+                   <span key={tag} className="chip-speakeasy text-xs">{tag}</span>
                  ))}
                </div>
                
                <div className="flex justify-between items-center pt-4" style={{ borderTop: '1px solid var(--border-color)' }}>
-                 <div className="text-xs" style={{ color: 'var(--muted-text)' }}>
+                 <div className="text-sm" style={{ color: 'var(--muted-text)' }}>
                    <span className="font-semibold" style={{ color: 'var(--accent)' }}>{wood.timeMin}-{wood.timeMax}s</span> safe range
                  </div>
                  {wood.isInMyKit && (
                    <button 
                      onClick={() => startSession(wood.id)}
-                     className="btn-brass px-3 py-1.5 rounded-lg text-xs flex items-center gap-1"
+                     className="btn-brass px-4 py-2 rounded-lg flex items-center gap-1.5 touch-target"
                      data-testid={`button-start-${wood.id}`}
                    >
-                     <Play className="w-3 h-3" /> Start
+                     <Play className="w-4 h-4" /> Start
                    </button>
                  )}
                </div>

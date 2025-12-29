@@ -21,22 +21,21 @@ export default function Pair() {
   };
 
   return (
-    <div className="max-w-xl mx-auto space-y-8 pb-24">
+    <div className="max-w-xl mx-auto space-y-8 pb-safe">
        <div className="text-center">
-         <h1 className="text-3xl font-display font-semibold tracking-wide mb-2" style={{ color: 'var(--text)' }} data-testid="text-page-title">
-           Pairing Lab
-         </h1>
+         <h1 className="mb-2" data-testid="text-page-title">Pairing Lab</h1>
          <p style={{ color: 'var(--muted-text)' }}>Discover flavor affinities.</p>
        </div>
 
        {/* Mode Toggle */}
-       <div className="p-1 rounded-full flex" style={{ background: 'var(--surface2)', border: '1px solid var(--border-color)' }}>
+       <div className="p-1.5 rounded-full flex" style={{ background: 'var(--surface2)', border: '1px solid var(--border-color)' }}>
          <button 
            onClick={() => setMode('meal-to-drink')} 
-           className={cn("flex-1 py-2 rounded-full text-sm font-semibold transition-all")}
+           className={cn("flex-1 py-3 rounded-full font-semibold tab-transition touch-target")}
            style={{ 
              background: mode === 'meal-to-drink' ? 'var(--accent)' : 'transparent',
-             color: mode === 'meal-to-drink' ? 'var(--bg)' : 'var(--muted-text)'
+             color: mode === 'meal-to-drink' ? 'var(--bg)' : 'var(--muted-text)',
+             boxShadow: mode === 'meal-to-drink' ? 'var(--shadow-glow)' : 'none'
            }}
            data-testid="button-mode-meal-to-drink"
          >
@@ -44,10 +43,11 @@ export default function Pair() {
          </button>
          <button 
            onClick={() => setMode('drink-to-meal')} 
-           className={cn("flex-1 py-2 rounded-full text-sm font-semibold transition-all")}
+           className={cn("flex-1 py-3 rounded-full font-semibold tab-transition touch-target")}
            style={{ 
              background: mode === 'drink-to-meal' ? 'var(--accent)' : 'transparent',
-             color: mode === 'drink-to-meal' ? 'var(--bg)' : 'var(--muted-text)'
+             color: mode === 'drink-to-meal' ? 'var(--bg)' : 'var(--muted-text)',
+             boxShadow: mode === 'drink-to-meal' ? 'var(--shadow-glow)' : 'none'
            }}
            data-testid="button-mode-drink-to-meal"
          >
@@ -61,14 +61,13 @@ export default function Pair() {
            value={input}
            onChange={e => setInput(e.target.value)}
            placeholder={mode === 'meal-to-drink' ? "e.g. Ribeye, Thai Curry..." : "e.g. Cabernet, Old Fashioned..."}
-           className="input-speakeasy w-full rounded-2xl p-6 text-xl text-center"
+           className="input-speakeasy w-full rounded-2xl p-5 text-lg text-center"
            onKeyDown={e => e.key === 'Enter' && handlePair()}
            data-testid="input-pairing"
          />
          <button 
            onClick={handlePair} 
-           className="absolute right-4 top-1/2 -translate-y-1/2 p-2 rounded-full transition-colors"
-           style={{ background: 'var(--surface2)', color: 'var(--text)', border: '1px solid var(--border-color)' }}
+           className="absolute right-4 top-1/2 -translate-y-1/2 btn-brass p-3 rounded-full touch-target"
            data-testid="button-pair"
          >
            <ArrowRight className="w-5 h-5" />
@@ -77,20 +76,20 @@ export default function Pair() {
 
        {/* Result */}
        {result && (
-         <div className="card-speakeasy p-8 text-center animate-in zoom-in-95" data-testid="card-result">
-            <div className="w-16 h-16 rounded-full mx-auto flex items-center justify-center mb-6" style={{ background: 'linear-gradient(135deg, var(--accent) 0%, var(--success) 100%)' }}>
+         <div className="card-speakeasy p-8 text-center scale-in" data-testid="card-result">
+            <div className="w-16 h-16 rounded-full mx-auto flex items-center justify-center mb-6 brass-glow" style={{ background: 'linear-gradient(135deg, var(--accent) 0%, var(--success) 100%)' }}>
               <UtensilsCrossed className="w-8 h-8" style={{ color: 'var(--bg)' }} />
             </div>
             
-            <h2 className="text-2xl font-display font-semibold tracking-wide mb-2" style={{ color: 'var(--text)' }}>{result.match}</h2>
+            <h2 className="mb-3">{result.match}</h2>
             <p className="mb-6" style={{ color: 'var(--muted-text)' }}>{result.reason}</p>
 
             {result.woodRecommendation && (
               <div className="rounded-xl p-4 text-left flex gap-3" style={{ background: 'rgba(198, 161, 91, 0.1)', border: '1px solid rgba(198, 161, 91, 0.2)' }}>
-                 <Wind className="w-5 h-5 flex-shrink-0" style={{ color: 'var(--accent)' }} />
+                 <Wind className="w-5 h-5 flex-shrink-0 mt-0.5" style={{ color: 'var(--accent)' }} />
                  <div>
-                   <h4 className="font-semibold text-sm" style={{ color: 'var(--accent)' }}>Smoker Pairing</h4>
-                   <p className="text-xs mt-1" style={{ color: 'var(--muted-text)' }}>
+                   <p className="font-semibold mb-1" style={{ color: 'var(--accent)' }}>Smoker Pairing</p>
+                   <p className="text-sm" style={{ color: 'var(--muted-text)' }}>
                      Try {result.woodRecommendation.wood}: {result.woodRecommendation.reason}
                    </p>
                  </div>
