@@ -18,6 +18,8 @@ export interface Recipe {
   tags: string[];
   matchScore?: number; // 0-100
   missingIngredients?: string[];
+  estimatedCost?: number;
+  missingCost?: boolean;
 }
 
 // --- Knowledge Base ---
@@ -117,6 +119,33 @@ const CLASSIC_RECIPES: Recipe[] = [
 
 // --- Engine ---
 
+// Helper: Parse measurement string to oz
+function parseVolume(ingString: string): number {
+  const parts = ingString.toLowerCase().split(' ');
+  const val = parseFloat(parts[0]);
+  if (isNaN(val)) {
+    if (ingString.includes('dash')) return 0.03; // approx 1ml
+    if (ingString.includes('splash')) return 0.1;
+    return 0;
+  }
+  if (parts[0].includes('oz')) {
+      return parseFloat(parts[0].replace('oz', ''));
+  }
+  return val; // Assume oz if number starts it
+}
+
+// Helper: Calculate cost per oz of an item
+function getCostPerOz(item: Item): number | null {
+  if (!item.price || !item.bottleSize) return null;
+  
+  let sizeInOz = item.bottleSize;
+  if (item.bottleUnit === 'ml') sizeInOz = item.bottleSize / 29.5735;
+  if (item.bottleUnit === 'l') sizeInOz = (item.bottleSize * 1000) / 29.5735;
+  
+  if (sizeInOz <= 0) return null;
+  return item.price / sizeInOz;
+}
+
 export function generateRecipes(
   inventory: Item[],
   settings: UserSettings,
@@ -132,33 +161,53 @@ export function generateRecipes(
     return true;
   });
 
-  // 2. Score by inventory match
+  // 2. Score by inventory match & Cost
   const scored = candidates.map(recipe => {
     let matches = 0;
     const missing: string[] = [];
+    let estimatedCost = 0;
+    let missingCost = false;
     
     // Naive matching
     recipe.ingredients.forEach(ing => {
       const ingName = ing.toLowerCase();
-      const hasItem = inventory.some(i => 
+      // Find matching item in inventory
+      const matchedItem = inventory.find(i => 
         ingName.includes(i.name.toLowerCase()) || 
         ingName.includes(i.category.toLowerCase()) ||
         (i.subtype && ingName.includes(i.subtype.toLowerCase()))
       );
       
-      if (hasItem) matches++;
-      else missing.push(ing);
+      if (matchedItem) {
+        matches++;
+        
+        // Calculate Cost if enabled
+        if (settings.enableCostTracking) {
+           const costPerOz = getCostPerOz(matchedItem);
+           const vol = parseVolume(ing);
+           if (costPerOz !== null && vol > 0) {
+             estimatedCost += (costPerOz * vol);
+           } else if (vol > 0) {
+             missingCost = true;
+           }
+        }
+      } else {
+        missing.push(ing);
+        if (settings.enableCostTracking) missingCost = true;
+      }
     });
 
-    // Bonus points for matching user's exact wood preference
-    if (recipe.isSmoked && recipe.recommendedWood) {
-       // Logic to check if user has this wood would go here
+    // Add wood cost estimate if smoked (approx $0.10 per smoke)
+    if (settings.enableCostTracking && recipe.isSmoked) {
+      estimatedCost += 0.10;
     }
 
     return {
       ...recipe,
       matchScore: (matches / recipe.ingredients.length) * 100,
-      missingIngredients: missing
+      missingIngredients: missing,
+      estimatedCost: estimatedCost > 0 ? parseFloat(estimatedCost.toFixed(2)) : undefined,
+      missingCost
     };
   });
 

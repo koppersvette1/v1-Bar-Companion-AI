@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useStore } from "@/lib/store";
-import { X, Settings as SettingsIcon, AlertTriangle, User } from "lucide-react";
+import { X, Settings as SettingsIcon, AlertTriangle, User, DollarSign, Calculator } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 export default function DiagnosticsModal({ open, onOpenChange }: { open: boolean, onOpenChange: (open: boolean) => void }) {
@@ -21,17 +21,19 @@ export default function DiagnosticsModal({ open, onOpenChange }: { open: boolean
       <div className="bg-card w-full max-w-lg rounded-2xl border border-white/10 shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300">
         <div className="p-6 border-b border-white/5 flex items-center justify-between">
           <h2 className="text-xl font-serif font-bold text-white flex items-center gap-2">
-            <User className="w-5 h-5 text-primary" />
-            My Profile
+            <SettingsIcon className="w-5 h-5 text-primary" />
+            Settings
           </h2>
           <button onClick={() => onOpenChange(false)} className="text-muted-foreground hover:text-white">
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        <div className="p-6 space-y-6">
+        <div className="p-6 space-y-6 max-h-[70vh] overflow-y-auto">
           
+          {/* General Profile */}
           <div className="space-y-4">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">General Profile</h3>
             <div className="space-y-2">
               <label className="text-sm font-medium text-white">Your Name</label>
               <input 
@@ -41,8 +43,12 @@ export default function DiagnosticsModal({ open, onOpenChange }: { open: boolean
                 className="w-full bg-black/20 border border-white/10 rounded-lg px-4 py-2 text-white focus:ring-1 focus:ring-primary/50"
               />
             </div>
-            
-            <div className="flex items-center justify-between p-4 rounded-xl bg-white/5 border border-white/10">
+          </div>
+
+          {/* Smoker Settings */}
+          <div className="space-y-4">
+             <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Smoker Configuration</h3>
+             <div className="flex items-center justify-between p-4 rounded-xl bg-white/5 border border-white/10">
               <div>
                 <div className="font-bold text-white text-sm">Cocktail Smoker Owner</div>
                 <div className="text-xs text-muted-foreground">Enables wood pairing & timers</div>
@@ -54,6 +60,37 @@ export default function DiagnosticsModal({ open, onOpenChange }: { open: boolean
                  <div className={`absolute top-1 left-1 w-4 h-4 rounded-full bg-white transition-transform ${userSettings.hasSmoker ? 'translate-x-6' : 'translate-x-0'}`} />
               </button>
             </div>
+          </div>
+
+          {/* Cost Tracking */}
+          <div className="space-y-4">
+             <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Advanced Features</h3>
+             <div className="flex items-center justify-between p-4 rounded-xl bg-white/5 border border-white/10">
+              <div className="flex gap-3">
+                <div className="p-2 bg-green-500/10 rounded-lg text-green-500 h-fit">
+                   <DollarSign className="w-5 h-5" />
+                </div>
+                <div>
+                  <div className="font-bold text-white text-sm">Drink Cost Tracking</div>
+                  <div className="text-xs text-muted-foreground max-w-[200px]">
+                    Estimate cost per drink based on bottle prices. Optional.
+                  </div>
+                </div>
+              </div>
+              <button 
+                onClick={() => updateSettings({ enableCostTracking: !userSettings.enableCostTracking })}
+                className={`w-12 h-6 rounded-full relative transition-colors ${userSettings.enableCostTracking ? 'bg-green-500' : 'bg-white/10'}`}
+              >
+                 <div className={`absolute top-1 left-1 w-4 h-4 rounded-full bg-white transition-transform ${userSettings.enableCostTracking ? 'translate-x-6' : 'translate-x-0'}`} />
+              </button>
+            </div>
+            
+            {userSettings.enableCostTracking && (
+              <div className="text-xs text-muted-foreground bg-green-500/5 p-3 rounded-lg border border-green-500/10 flex items-start gap-2">
+                 <Calculator className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                 Prices are stored locally on your device. Turning this off hides the data but doesn't delete it.
+              </div>
+            )}
           </div>
 
           <div className="flex justify-end gap-3 pt-4 border-t border-white/5">

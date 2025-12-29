@@ -1,13 +1,13 @@
 import { useState } from "react";
 import { useStore, Category, Item } from "@/lib/store";
-import { Plus, Search, Filter, ScanLine, Trash2, Edit2, FlaskConical, ChevronDown, Check } from "lucide-react";
+import { Plus, Search, Filter, ScanLine, Trash2, Edit2, FlaskConical, ChevronDown, Check, DollarSign } from "lucide-react";
 import { cn } from "@/lib/utils";
 import AddItemModal from "@/components/add-item-modal";
 
 const CATEGORIES: Category[] = ['spirit', 'liqueur', 'bitters', 'mixer', 'syrup', 'garnish', 'tool', 'accessory'];
 
 export default function Inventory() {
-  const { inventory, removeItem, loadDemoData } = useStore();
+  const { inventory, removeItem, loadDemoData, userSettings } = useStore();
   const [filter, setFilter] = useState<Category | 'all'>('all');
   const [search, setSearch] = useState("");
   const [showAddModal, setShowAddModal] = useState(false);
@@ -118,10 +118,10 @@ export default function Inventory() {
                    <span className="inline-block px-2 py-0.5 rounded-sm bg-white/10 backdrop-blur-md text-[10px] font-bold uppercase tracking-wider text-white/80">
                     {item.category}
                    </span>
-                   {item.subtype && (
-                     <span className="inline-block px-2 py-0.5 rounded-sm bg-primary/20 backdrop-blur-md text-[10px] font-bold uppercase tracking-wider text-primary">
-                      {item.subtype}
-                     </span>
+                   {userSettings.enableCostTracking && item.price && (
+                      <span className="inline-block px-2 py-0.5 rounded-sm bg-green-500/20 backdrop-blur-md text-[10px] font-bold text-green-400">
+                        ${item.price}
+                      </span>
                    )}
                 </div>
                 

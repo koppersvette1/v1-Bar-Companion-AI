@@ -1,19 +1,24 @@
 import { useState, useRef, useEffect } from "react";
 import { useStore, Category } from "@/lib/store";
-import { X, Upload, Check, Loader2, Camera, ScanLine, RotateCcw, Sparkles } from "lucide-react";
+import { X, Upload, Check, Loader2, Camera, ScanLine, RotateCcw, Sparkles, DollarSign } from "lucide-react";
 import { useDropzone } from "react-dropzone";
 import { cn } from "@/lib/utils";
 import { scanImage } from "@/lib/scanner";
 
-const CATEGORIES: Category[] = ['spirit', 'liqueur', 'bitters', 'mixer', 'garnish', 'tool', 'accessory'];
+const CATEGORIES: Category[] = ['spirit', 'liqueur', 'bitters', 'mixer', 'syrup', 'garnish', 'tool', 'accessory'];
 
 export default function AddItemModal({ open, onOpenChange }: { open: boolean, onOpenChange: (open: boolean) => void }) {
-  const { addItem } = useStore();
+  const { addItem, userSettings } = useStore();
   
   // Form State
   const [name, setName] = useState("");
   const [category, setCategory] = useState<Category>('spirit');
   const [image, setImage] = useState<string | null>(null);
+  
+  // Cost State
+  const [price, setPrice] = useState("");
+  const [size, setSize] = useState("");
+  const [unit, setUnit] = useState<'ml' | 'oz' | 'l'>('ml');
   
   // Scan State
   const [mode, setMode] = useState<'scan' | 'review' | 'manual'>('scan');
@@ -30,6 +35,8 @@ export default function AddItemModal({ open, onOpenChange }: { open: boolean, on
         setCategory('spirit');
         setImage(null);
         setSuggestions([]);
+        setPrice("");
+        setSize("");
         setIsScanning(false);
       }, 300);
     }
@@ -91,10 +98,14 @@ export default function AddItemModal({ open, onOpenChange }: { open: boolean, on
       name,
       category,
       image: image || undefined,
-      quantity: 1
+      quantity: 1,
+      dateAdded: Date.now(),
+      // Cost optional
+      price: price ? parseFloat(price) : undefined,
+      bottleSize: size ? parseFloat(size) : undefined,
+      bottleUnit: size ? unit : undefined
     });
     
-    // Toast logic could go here
     onOpenChange(false);
   };
 
@@ -115,7 +126,7 @@ export default function AddItemModal({ open, onOpenChange }: { open: boolean, on
           </button>
         </div>
 
-        <div className="flex-1 overflow-y-auto p-6 space-y-6">
+        <div className="flex-1 overflow-y-auto p-6 space-y-6 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
           
           {/* SCAN MODE */}
           {mode === 'scan' && (
@@ -151,8 +162,6 @@ export default function AddItemModal({ open, onOpenChange }: { open: boolean, on
                      </p>
                   </>
                 )}
-
-                {/* Invisible trigger for the whole box if needed, but we use buttons below */}
               </div>
 
               <div className="grid grid-cols-2 gap-4 w-full max-w-xs">
@@ -257,6 +266,55 @@ export default function AddItemModal({ open, onOpenChange }: { open: boolean, on
                 <div className="p-4 rounded-xl bg-orange-500/10 border border-orange-500/20 text-orange-200 text-sm flex gap-3 items-start">
                   <Sparkles className="w-5 h-5 flex-shrink-0 mt-0.5" />
                   <p>Great! Adding accessories like smokers or shakers unlocks new recipe techniques.</p>
+                </div>
+              )}
+              
+              {/* COST TRACKING (OPTIONAL) */}
+              {userSettings.enableCostTracking && (
+                <div className="p-4 rounded-xl bg-green-500/5 border border-green-500/10 space-y-3">
+                   <div className="flex items-center justify-between">
+                     <div className="flex items-center gap-2 text-green-500">
+                        <DollarSign className="w-4 h-4" />
+                        <span className="text-sm font-bold uppercase">Cost Details (Optional)</span>
+                     </div>
+                   </div>
+                   
+                   <div className="grid grid-cols-2 gap-4">
+                     <div>
+                       <label className="text-xs text-muted-foreground mb-1 block">Price Paid</label>
+                       <input 
+                         type="number" 
+                         value={price}
+                         onChange={e => setPrice(e.target.value)}
+                         placeholder="0.00"
+                         className="w-full bg-black/20 border border-white/10 rounded-lg px-3 py-2 text-white focus:ring-1 focus:ring-green-500/50"
+                       />
+                     </div>
+                     <div className="flex gap-2">
+                       <div className="flex-1">
+                          <label className="text-xs text-muted-foreground mb-1 block">Volume</label>
+                          <input 
+                            type="number" 
+                            value={size}
+                            onChange={e => setSize(e.target.value)}
+                            placeholder="750"
+                            className="w-full bg-black/20 border border-white/10 rounded-lg px-3 py-2 text-white focus:ring-1 focus:ring-green-500/50"
+                          />
+                       </div>
+                       <div className="w-20">
+                          <label className="text-xs text-muted-foreground mb-1 block">Unit</label>
+                          <select 
+                            value={unit}
+                            onChange={e => setUnit(e.target.value as any)}
+                            className="w-full bg-black/20 border border-white/10 rounded-lg px-2 py-2 text-white text-sm"
+                          >
+                            <option value="ml">ml</option>
+                            <option value="oz">oz</option>
+                            <option value="l">L</option>
+                          </select>
+                       </div>
+                     </div>
+                   </div>
                 </div>
               )}
 

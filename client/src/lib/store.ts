@@ -32,6 +32,12 @@ export interface Item {
   notes?: string;
   image?: string;
   dateAdded: number;
+  // Cost Tracking Fields
+  price?: number;
+  currency?: string;
+  bottleSize?: number; // volume
+  bottleUnit?: 'ml' | 'oz' | 'l';
+  store?: string;
 }
 
 export interface UserSettings {
@@ -39,6 +45,7 @@ export interface UserSettings {
   hasSmoker: boolean;
   smokerDeviceName?: string;
   preferredIntensity: Intensity;
+  enableCostTracking: boolean;
 }
 
 export interface AppState {
@@ -70,12 +77,12 @@ const SEED_WOODS: Wood[] = [
 ];
 
 const DEMO_INVENTORY: Item[] = [
-  { id: '1', name: 'Bourbon Whiskey', brand: 'Woodford Reserve', category: 'spirit', subtype: 'Bourbon', abv: 45, quantity: 1, dateAdded: Date.now(), image: cocktailImage },
-  { id: '2', name: 'Sweet Vermouth', brand: 'Carpano Antica', category: 'liqueur', subtype: 'Vermouth', quantity: 1, dateAdded: Date.now() },
-  { id: '3', name: 'Angostura Bitters', category: 'bitters', quantity: 1, dateAdded: Date.now() },
-  { id: '4', name: 'Campari', category: 'liqueur', subtype: 'Amaro', quantity: 1, dateAdded: Date.now() },
-  { id: '5', name: 'London Dry Gin', brand: 'Tanqueray', category: 'spirit', subtype: 'Gin', quantity: 1, dateAdded: Date.now() },
-  { id: '6', name: 'Simple Syrup', category: 'syrup', quantity: 1, dateAdded: Date.now() },
+  { id: '1', name: 'Bourbon Whiskey', brand: 'Woodford Reserve', category: 'spirit', subtype: 'Bourbon', abv: 45, quantity: 1, dateAdded: Date.now(), image: cocktailImage, price: 35.99, bottleSize: 750, bottleUnit: 'ml' },
+  { id: '2', name: 'Sweet Vermouth', brand: 'Carpano Antica', category: 'liqueur', subtype: 'Vermouth', quantity: 1, dateAdded: Date.now(), price: 32.00, bottleSize: 1000, bottleUnit: 'ml' },
+  { id: '3', name: 'Angostura Bitters', category: 'bitters', quantity: 1, dateAdded: Date.now(), price: 12.00, bottleSize: 4, bottleUnit: 'oz' },
+  { id: '4', name: 'Campari', category: 'liqueur', subtype: 'Amaro', quantity: 1, dateAdded: Date.now(), price: 28.00, bottleSize: 750, bottleUnit: 'ml' },
+  { id: '5', name: 'London Dry Gin', brand: 'Tanqueray', category: 'spirit', subtype: 'Gin', quantity: 1, dateAdded: Date.now(), price: 24.99, bottleSize: 750, bottleUnit: 'ml' },
+  { id: '6', name: 'Simple Syrup', category: 'syrup', quantity: 1, dateAdded: Date.now(), price: 5.00, bottleSize: 12, bottleUnit: 'oz' },
   { id: '7', name: 'Cocktail Smoker', brand: 'Foghat', category: 'accessory', quantity: 1, dateAdded: Date.now() },
 ];
 
@@ -90,6 +97,7 @@ export const useStore = create<AppState>()(
         name: 'Guest',
         hasSmoker: false,
         preferredIntensity: 'medium',
+        enableCostTracking: false,
       },
 
       addItem: (item) => set((state) => ({ inventory: [...state.inventory, item] })),
@@ -114,13 +122,13 @@ export const useStore = create<AppState>()(
 
       loadDemoData: () => set((state) => ({
         inventory: DEMO_INVENTORY,
-        userSettings: { ...state.userSettings, hasSmoker: true }
+        userSettings: { ...state.userSettings, hasSmoker: true, enableCostTracking: true }
       })),
 
       reset: () => set({
         inventory: [],
         woodLibrary: SEED_WOODS,
-        userSettings: { name: 'Guest', hasSmoker: false, preferredIntensity: 'medium' }
+        userSettings: { name: 'Guest', hasSmoker: false, preferredIntensity: 'medium', enableCostTracking: false }
       })
     }),
     {

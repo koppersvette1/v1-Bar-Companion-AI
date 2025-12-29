@@ -1,0 +1,79 @@
+Update BarBuddy so that drink cost tracking is OPTIONAL and controlled by a global user setting.
+
+A) GLOBAL USER SETTING
+Add a per-user setting:
+- enableCostTracking (boolean, default false)
+
+Place this setting in:
+- Profile / Settings page
+Label:
+- “Enable drink cost tracking”
+Helper text:
+- “Estimate cost per drink and per batch using your bottle prices. You can turn this on or off anytime.”
+
+B) BEHAVIOR WHEN COST TRACKING IS OFF (DEFAULT)
+When enableCostTracking = false:
+- Do NOT prompt for prices when adding bottles.
+- Hide all cost-related UI:
+  - cost per drink
+  - cost breakdowns
+  - shopping cost summaries
+  - batch cost totals
+- Inventory items do not show price fields.
+- Receipt OCR and pricing providers are disabled/hidden.
+- The app behaves exactly like a non-cost-tracking cocktail app.
+
+C) BEHAVIOR WHEN COST TRACKING IS ON
+When enableCostTracking = true:
+1) Inventory
+- Show optional price fields:
+  - purchase price
+  - bottle size
+  - store (Total Wine, BevMo, Other)
+- Show computed cost per oz/ml.
+- Add an “Unpriced items” filter.
+
+2) Add Bottle Flow
+- After barcode/OCR/manual add, show a NON-BLOCKING prompt:
+  - “Want to add a price for cost estimates?”
+  - Buttons: “Add price” | “Skip”
+- Skipping does NOT nag the user again for that item.
+
+3) Cocktail Pages
+- Show “Estimated cost per drink” with expandable breakdown.
+- If some ingredients lack prices:
+  - Show “Partial estimate” + list missing inputs.
+  - Provide one-tap “Add price” actions.
+
+4) Smoked Cocktails
+- If smoked=true, include wood dust/chip cost per use in the breakdown.
+- If wood cost is missing, show it as optional.
+
+5) Batch Mode
+- Show total batch cost and per-drink cost only when cost tracking is enabled.
+
+D) SETTINGS UX
+- Settings page sections:
+  - General
+  - Smoker
+  - Cost Tracking
+- Cost Tracking section includes:
+  - Enable cost tracking toggle
+  - Short explanation of how costs are calculated
+  - Button: “Manage default garnish & consumable costs” (only visible if enabled)
+
+E) DATA SAFETY
+- Turning cost tracking OFF:
+  - Does NOT delete stored prices.
+  - Simply hides cost UI and calculations.
+- Turning it back ON restores all previous pricing data.
+
+F) README UPDATE
+Document:
+- Cost tracking is optional and off by default.
+- How to enable it.
+- What data is stored when enabled.
+- That retailer prices are user-entered or imported via receipts (no scraping).
+
+Deliverable:
+- A clean, optional cost system that never blocks core cocktail functionality and respects the user toggle everywhere in the app.

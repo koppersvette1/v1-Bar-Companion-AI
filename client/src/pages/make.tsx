@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useStore } from "@/lib/store";
-import { Sparkles, Loader2, RefreshCw, ChefHat, Wind, Info, Filter, X } from "lucide-react";
+import { Sparkles, Loader2, RefreshCw, ChefHat, Wind, Info, Filter, X, DollarSign } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { generateRecipes, Recipe } from "@/lib/logic";
 import { Link } from "wouter";
@@ -77,6 +77,15 @@ export default function Make() {
                    <Wind className="w-3 h-3" /> Smoked
                  </span>
                )}
+               {userSettings.enableCostTracking && selectedRecipe.estimatedCost && (
+                  <span className={cn(
+                    "px-2 py-1 backdrop-blur-md rounded text-[10px] font-bold uppercase text-white flex items-center gap-1",
+                    selectedRecipe.missingCost ? "bg-yellow-500/80" : "bg-green-500/80"
+                  )}>
+                    <DollarSign className="w-3 h-3" />
+                    {selectedRecipe.missingCost ? `~ $${selectedRecipe.estimatedCost}` : `$${selectedRecipe.estimatedCost}`}
+                  </span>
+               )}
              </div>
             <h1 className="text-4xl md:text-5xl font-serif font-bold text-white mb-2">{selectedRecipe.name}</h1>
             <p className="text-white/80 max-w-lg leading-relaxed">{selectedRecipe.description}</p>
@@ -110,6 +119,23 @@ export default function Make() {
                 )}
              </div>
              
+             {/* Cost Estimate Detail */}
+             {userSettings.enableCostTracking && selectedRecipe.estimatedCost && (
+               <div className="glass-card p-6 rounded-2xl space-y-3 border-l-4 border-l-green-500 bg-green-500/5">
+                 <div className="flex items-center gap-2 text-green-400">
+                    <DollarSign className="w-5 h-5" />
+                    <h3 className="font-bold uppercase tracking-wider text-xs">Cost Breakdown</h3>
+                 </div>
+                 <div className="text-sm text-muted-foreground">
+                   Estimated cost per drink:
+                   <span className="block text-2xl text-white font-bold my-1">${selectedRecipe.estimatedCost}</span>
+                   {selectedRecipe.missingCost && (
+                     <span className="text-xs text-yellow-400 block mt-1">*Partial estimate (some item prices missing)</span>
+                   )}
+                 </div>
+               </div>
+             )}
+
              {/* Smoker Tip */}
              {selectedRecipe.isSmoked && (
                 <div className="glass-card p-6 rounded-2xl space-y-3 border-l-4 border-l-orange-500 bg-orange-500/5">
