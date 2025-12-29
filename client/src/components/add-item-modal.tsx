@@ -1,24 +1,23 @@
-import { useState, useRef, useEffect } from "react";
-import { useStore, Category } from "@/lib/store";
-import { X, Upload, Check, Loader2, Camera, ScanLine, RotateCcw, Sparkles, DollarSign } from "lucide-react";
+import { useState, useEffect } from "react";
+import { useStore, InventoryItem } from "@/lib/store"; // Category type is string in new store or inferred?
+import { X, Upload, Check, Loader2, Camera, ScanLine, Sparkles, DollarSign } from "lucide-react";
 import { useDropzone } from "react-dropzone";
 import { cn } from "@/lib/utils";
 import { scanImage } from "@/lib/scanner";
 
-const CATEGORIES: Category[] = ['spirit', 'liqueur', 'bitters', 'mixer', 'syrup', 'garnish', 'tool', 'accessory'];
+const CATEGORIES = ['spirit', 'liqueur', 'bitters', 'mixer', 'syrup', 'garnish', 'tool', 'accessory'];
 
 export default function AddItemModal({ open, onOpenChange }: { open: boolean, onOpenChange: (open: boolean) => void }) {
-  const { addItem, userSettings } = useStore();
+  const { addInventoryItem, settings } = useStore();
   
   // Form State
   const [name, setName] = useState("");
-  const [category, setCategory] = useState<Category>('spirit');
+  const [category, setCategory] = useState("spirit");
   const [image, setImage] = useState<string | null>(null);
   
   // Cost State
   const [price, setPrice] = useState("");
   const [size, setSize] = useState("");
-  const [unit, setUnit] = useState<'ml' | 'oz' | 'l'>('ml');
   
   // Scan State
   const [mode, setMode] = useState<'scan' | 'review' | 'manual'>('scan');
@@ -58,13 +57,12 @@ export default function AddItemModal({ open, onOpenChange }: { open: boolean, on
         const result = await scanImage(file);
         
         setScanStatus("Analyzing product...");
-        // Artificial delay for UX if it was too fast
         await new Promise(r => setTimeout(r, 800));
 
         if (result.detectedName) {
           setName(result.detectedName);
         } else {
-          setName("Unknown Item"); // Fallback
+          setName("Unknown Item");
         }
         
         if (result.detectedCategory) {
@@ -87,23 +85,21 @@ export default function AddItemModal({ open, onOpenChange }: { open: boolean, on
     onDrop, 
     accept: { 'image/*': [] },
     maxFiles: 1,
-    noClick: true // We bind click manually to buttons
+    noClick: true
   });
 
   const handleSubmit = () => {
     if (!name) return;
     
-    addItem({
-      id: Math.random().toString(36).substr(2, 9),
+    addInventoryItem({
       name,
       category,
-      image: image || undefined,
+      photo: image || undefined,
       quantity: 1,
-      dateAdded: Date.now(),
       // Cost optional
       price: price ? parseFloat(price) : undefined,
-      bottleSize: size ? parseFloat(size) : undefined,
-      bottleUnit: size ? unit : undefined
+      bottleSizeMl: size ? parseFloat(size) : undefined,
+      tags: [], // Auto-tagging could happen here
     });
     
     onOpenChange(false);
@@ -113,15 +109,15 @@ export default function AddItemModal({ open, onOpenChange }: { open: boolean, on
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="bg-card w-full max-w-lg rounded-3xl border border-white/10 shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300 flex flex-col max-h-[90vh]">
+      <div className="bg-slate-900 w-full max-w-lg rounded-3xl border border-slate-800 shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300 flex flex-col max-h-[90vh]">
         
         {/* Header */}
-        <div className="p-4 border-b border-white/5 flex items-center justify-between bg-white/5">
+        <div className="p-4 border-b border-slate-800 flex items-center justify-between bg-slate-800/50">
           <h2 className="text-lg font-bold text-white flex items-center gap-2">
-            {mode === 'scan' ? <ScanLine className="w-5 h-5 text-primary" /> : <Check className="w-5 h-5 text-green-400" />}
+            {mode === 'scan' ? <ScanLine className="w-5 h-5 text-orange-500" /> : <Check className="w-5 h-5 text-green-400" />}
             {mode === 'scan' ? "Scan Item" : "Confirm Details"}
           </h2>
-          <button onClick={() => onOpenChange(false)} className="text-muted-foreground hover:text-white p-2 hover:bg-white/10 rounded-full transition-colors">
+          <button onClick={() => onOpenChange(false)} className="text-slate-500 hover:text-white p-2 hover:bg-white/10 rounded-full transition-colors">
             <X className="w-5 h-5" />
           </button>
         </div>
@@ -136,7 +132,7 @@ export default function AddItemModal({ open, onOpenChange }: { open: boolean, on
                 {...getRootProps()}
                 className={cn(
                   "relative w-64 h-64 rounded-3xl border-2 border-dashed flex flex-col items-center justify-center transition-all overflow-hidden group",
-                  isDragActive ? "border-primary bg-primary/10 scale-105" : "border-white/10 bg-black/20"
+                  isDragActive ? "border-orange-500 bg-orange-500/10 scale-105" : "border-slate-800 bg-black/20"
                 )}
               >
                 <input {...getInputProps()} />
@@ -144,19 +140,19 @@ export default function AddItemModal({ open, onOpenChange }: { open: boolean, on
                 {isScanning ? (
                   <div className="absolute inset-0 bg-black/80 flex flex-col items-center justify-center text-center p-4 space-y-4">
                     <div className="relative">
-                       <Loader2 className="w-12 h-12 text-primary animate-spin" />
-                       <div className="absolute inset-0 animate-ping opacity-20 bg-primary rounded-full" />
+                       <Loader2 className="w-12 h-12 text-orange-500 animate-spin" />
+                       <div className="absolute inset-0 animate-ping opacity-20 bg-orange-500 rounded-full" />
                     </div>
                     <div>
                        <p className="text-white font-bold text-lg">Scanning...</p>
-                       <p className="text-xs text-muted-foreground mt-1">{scanStatus}</p>
+                       <p className="text-xs text-slate-500 mt-1">{scanStatus}</p>
                     </div>
                   </div>
                 ) : (
                   <>
                      <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] animate-pulse-slow" />
-                     <Camera className="w-16 h-16 text-muted-foreground mb-4 group-hover:text-primary transition-colors" />
-                     <p className="text-sm text-muted-foreground text-center px-4">
+                     <Camera className="w-16 h-16 text-slate-600 mb-4 group-hover:text-orange-500 transition-colors" />
+                     <p className="text-sm text-slate-500 text-center px-4">
                        <span className="text-white font-bold">Tap to Scan</span><br/> 
                        bottle, can, or tool
                      </p>
@@ -167,21 +163,21 @@ export default function AddItemModal({ open, onOpenChange }: { open: boolean, on
               <div className="grid grid-cols-2 gap-4 w-full max-w-xs">
                 <button 
                   onClick={openFilePicker}
-                  className="flex flex-col items-center justify-center p-4 bg-primary text-primary-foreground rounded-2xl hover:bg-primary/90 transition-all active:scale-95 shadow-lg shadow-primary/20"
+                  className="flex flex-col items-center justify-center p-4 bg-orange-500 text-white rounded-2xl hover:bg-orange-600 transition-all active:scale-95 shadow-lg shadow-orange-500/20"
                 >
                   <Camera className="w-6 h-6 mb-2" />
                   <span className="font-bold text-sm">Take Photo</span>
                 </button>
                  <button 
                   onClick={openFilePicker}
-                  className="flex flex-col items-center justify-center p-4 bg-white/5 text-white border border-white/10 rounded-2xl hover:bg-white/10 transition-all active:scale-95"
+                  className="flex flex-col items-center justify-center p-4 bg-slate-800 text-white border border-slate-700 rounded-2xl hover:bg-slate-700 transition-all active:scale-95"
                 >
-                  <Upload className="w-6 h-6 mb-2 text-muted-foreground" />
+                  <Upload className="w-6 h-6 mb-2 text-slate-400" />
                   <span className="font-bold text-sm">Upload</span>
                 </button>
               </div>
 
-              <button onClick={() => setMode('manual')} className="text-sm text-muted-foreground hover:text-white underline decoration-dotted">
+              <button onClick={() => setMode('manual')} className="text-sm text-slate-500 hover:text-white underline decoration-dotted">
                 Skip and add manually
               </button>
             </div>
@@ -194,7 +190,7 @@ export default function AddItemModal({ open, onOpenChange }: { open: boolean, on
               <div className="flex gap-4 items-start">
                 <div 
                    onClick={openFilePicker}
-                   className="w-24 h-24 rounded-xl bg-black/40 border border-white/10 flex-shrink-0 overflow-hidden relative group cursor-pointer"
+                   className="w-24 h-24 rounded-xl bg-black/40 border border-slate-800 flex-shrink-0 overflow-hidden relative group cursor-pointer"
                 >
                    {image ? (
                      <>
@@ -205,19 +201,14 @@ export default function AddItemModal({ open, onOpenChange }: { open: boolean, on
                      </>
                    ) : (
                      <div className="w-full h-full flex items-center justify-center">
-                       <Camera className="w-8 h-8 text-muted-foreground" />
+                       <Camera className="w-8 h-8 text-slate-600" />
                      </div>
                    )}
                 </div>
                 
                 <div className="flex-1 space-y-1">
                   <div className="flex items-center gap-2">
-                    <label className="text-xs font-bold text-primary uppercase tracking-wider">Detected Item</label>
-                    {suggestions.length > 0 && (
-                      <span className="text-[10px] bg-white/10 px-2 py-0.5 rounded text-muted-foreground">
-                        {Math.floor(Math.random() * 20 + 80)}% Match
-                      </span>
-                    )}
+                    <label className="text-xs font-bold text-orange-500 uppercase tracking-wider">Detected Item</label>
                   </div>
                   <input 
                     type="text" 
@@ -232,7 +223,7 @@ export default function AddItemModal({ open, onOpenChange }: { open: boolean, on
                         <button 
                           key={s} 
                           onClick={() => setName(s)}
-                          className="text-[10px] px-2 py-1 rounded bg-white/5 hover:bg-primary/20 hover:text-primary transition-colors border border-white/5"
+                          className="text-[10px] px-2 py-1 rounded bg-slate-800 hover:bg-orange-500/20 hover:text-orange-500 transition-colors border border-slate-700"
                         >
                           {s}
                         </button>
@@ -243,7 +234,7 @@ export default function AddItemModal({ open, onOpenChange }: { open: boolean, on
               </div>
 
               <div className="space-y-3">
-                <label className="text-xs font-bold text-muted-foreground uppercase">Category</label>
+                <label className="text-xs font-bold text-slate-500 uppercase">Category</label>
                 <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
                   {CATEGORIES.map(cat => (
                     <button
@@ -252,8 +243,8 @@ export default function AddItemModal({ open, onOpenChange }: { open: boolean, on
                       className={cn(
                         "px-2 py-2 rounded-lg text-[10px] font-bold uppercase transition-all border text-center",
                         category === cat 
-                          ? "bg-primary text-primary-foreground border-primary" 
-                          : "bg-white/5 text-muted-foreground border-transparent hover:border-white/10"
+                          ? "bg-orange-500 text-white border-orange-500" 
+                          : "bg-slate-800 text-slate-500 border-transparent hover:border-slate-700"
                       )}
                     >
                       {cat}
@@ -265,54 +256,40 @@ export default function AddItemModal({ open, onOpenChange }: { open: boolean, on
               {category === 'accessory' && (
                 <div className="p-4 rounded-xl bg-orange-500/10 border border-orange-500/20 text-orange-200 text-sm flex gap-3 items-start">
                   <Sparkles className="w-5 h-5 flex-shrink-0 mt-0.5" />
-                  <p>Great! Adding accessories like smokers or shakers unlocks new recipe techniques.</p>
+                  <p>Adding accessories like smokers or shakers unlocks new recipe techniques.</p>
                 </div>
               )}
               
               {/* COST TRACKING (OPTIONAL) */}
-              {userSettings.enableCostTracking && (
+              {settings.enableCostTracking && (
                 <div className="p-4 rounded-xl bg-green-500/5 border border-green-500/10 space-y-3">
                    <div className="flex items-center justify-between">
                      <div className="flex items-center gap-2 text-green-500">
                         <DollarSign className="w-4 h-4" />
-                        <span className="text-sm font-bold uppercase">Cost Details (Optional)</span>
+                        <span className="text-sm font-bold uppercase">Cost Details</span>
                      </div>
                    </div>
                    
                    <div className="grid grid-cols-2 gap-4">
                      <div>
-                       <label className="text-xs text-muted-foreground mb-1 block">Price Paid</label>
+                       <label className="text-xs text-slate-500 mb-1 block">Price Paid</label>
                        <input 
                          type="number" 
                          value={price}
                          onChange={e => setPrice(e.target.value)}
                          placeholder="0.00"
-                         className="w-full bg-black/20 border border-white/10 rounded-lg px-3 py-2 text-white focus:ring-1 focus:ring-green-500/50"
+                         className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white focus:ring-1 focus:ring-green-500/50"
                        />
                      </div>
-                     <div className="flex gap-2">
-                       <div className="flex-1">
-                          <label className="text-xs text-muted-foreground mb-1 block">Volume</label>
-                          <input 
-                            type="number" 
-                            value={size}
-                            onChange={e => setSize(e.target.value)}
-                            placeholder="750"
-                            className="w-full bg-black/20 border border-white/10 rounded-lg px-3 py-2 text-white focus:ring-1 focus:ring-green-500/50"
-                          />
-                       </div>
-                       <div className="w-20">
-                          <label className="text-xs text-muted-foreground mb-1 block">Unit</label>
-                          <select 
-                            value={unit}
-                            onChange={e => setUnit(e.target.value as any)}
-                            className="w-full bg-black/20 border border-white/10 rounded-lg px-2 py-2 text-white text-sm"
-                          >
-                            <option value="ml">ml</option>
-                            <option value="oz">oz</option>
-                            <option value="l">L</option>
-                          </select>
-                       </div>
+                     <div>
+                        <label className="text-xs text-slate-500 mb-1 block">Size (ml)</label>
+                        <input 
+                          type="number" 
+                          value={size}
+                          onChange={e => setSize(e.target.value)}
+                          placeholder="750"
+                          className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white focus:ring-1 focus:ring-green-500/50"
+                        />
                      </div>
                    </div>
                 </div>
@@ -321,14 +298,14 @@ export default function AddItemModal({ open, onOpenChange }: { open: boolean, on
               <div className="pt-4 flex gap-3">
                 <button 
                   onClick={() => setMode('scan')}
-                  className="flex-1 py-3 bg-white/5 text-white font-bold rounded-xl hover:bg-white/10 transition-all border border-white/10"
+                  className="flex-1 py-3 bg-slate-800 text-white font-bold rounded-xl hover:bg-slate-700 transition-all border border-slate-700"
                 >
                   Retake
                 </button>
                 <button 
                   onClick={handleSubmit}
                   disabled={!name}
-                  className="flex-[2] py-3 bg-primary text-primary-foreground font-bold rounded-xl hover:bg-primary/90 transition-all disabled:opacity-50 shadow-lg shadow-primary/20"
+                  className="flex-[2] py-3 bg-orange-500 text-white font-bold rounded-xl hover:bg-orange-600 transition-all disabled:opacity-50 shadow-lg shadow-orange-500/20"
                 >
                   Save to Bar
                 </button>

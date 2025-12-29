@@ -3,13 +3,19 @@ import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import NotFound from "@/pages/not-found";
+
 import Layout from "@/components/layout";
+import NotFound from "@/pages/not-found";
+
+// Pages (I will create these next)
 import Home from "@/pages/home";
 import Inventory from "@/pages/inventory";
-import Make from "@/pages/make";
+import Cocktails from "@/pages/cocktails";
+import Smoker from "@/pages/smoker";
+import People from "@/pages/people";
+import Settings from "@/pages/settings";
+import Favorites from "@/pages/favorites";
 import Pair from "@/pages/pair";
-import SmokerMode from "@/pages/smoker";
 
 function Router() {
   return (
@@ -17,9 +23,12 @@ function Router() {
       <Switch>
         <Route path="/" component={Home} />
         <Route path="/inventory" component={Inventory} />
-        <Route path="/make" component={Make} />
+        <Route path="/cocktails" component={Cocktails} />
+        <Route path="/smoker" component={Smoker} />
+        <Route path="/people" component={People} />
+        <Route path="/settings" component={Settings} />
+        <Route path="/favorites" component={Favorites} />
         <Route path="/pair" component={Pair} />
-        <Route path="/smoker" component={SmokerMode} />
         <Route component={NotFound} />
       </Switch>
     </Layout>

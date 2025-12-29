@@ -1,16 +1,14 @@
+import { useStore } from "@/lib/store";
+import { FlaskConical, Plus, Search, ScanLine, Edit2, Trash2, DollarSign } from "lucide-react";
 import { useState } from "react";
-import { useStore, Category, Item } from "@/lib/store";
-import { Plus, Search, Filter, ScanLine, Trash2, Edit2, FlaskConical, ChevronDown, Check, DollarSign } from "lucide-react";
 import { cn } from "@/lib/utils";
-import AddItemModal from "@/components/add-item-modal";
-
-const CATEGORIES: Category[] = ['spirit', 'liqueur', 'bitters', 'mixer', 'syrup', 'garnish', 'tool', 'accessory'];
+import AddItemModal from "@/components/add-item-modal"; // I will restore this
 
 export default function Inventory() {
-  const { inventory, removeItem, loadDemoData, userSettings } = useStore();
-  const [filter, setFilter] = useState<Category | 'all'>('all');
+  const { inventory, removeInventoryItem, loadSeedData, settings } = useStore();
   const [search, setSearch] = useState("");
   const [showAddModal, setShowAddModal] = useState(false);
+  const [filter, setFilter] = useState('all');
 
   const filteredItems = inventory.filter(item => {
     const matchesFilter = filter === 'all' || item.category === filter;
@@ -19,135 +17,100 @@ export default function Inventory() {
     return matchesFilter && matchesSearch;
   });
 
+  const categories = ['spirit', 'liqueur', 'bitters', 'mixer', 'garnish', 'tool', 'accessory'];
+
   return (
-    <div className="space-y-6 h-full flex flex-col">
+    <div className="space-y-6">
       <AddItemModal open={showAddModal} onOpenChange={setShowAddModal} />
-      
-      {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+
+      <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-serif font-bold text-white">My Cabinet</h1>
-          <p className="text-muted-foreground">Manage your ingredients and tools.</p>
+           <h1 className="text-3xl font-serif font-bold text-white">My Bar</h1>
+           <p className="text-slate-400 text-sm">Manage ingredients & tools</p>
         </div>
         <div className="flex gap-2">
-          {inventory.length === 0 && (
-             <button 
-              onClick={loadDemoData}
-              className="flex items-center gap-2 bg-secondary text-secondary-foreground px-4 py-2 rounded-xl font-medium hover:bg-secondary/80 transition-colors"
-            >
-              <FlaskConical className="w-4 h-4" /> Load Demo
-            </button>
-          )}
-          <button 
-            onClick={() => setShowAddModal(true)}
-            className="flex items-center gap-2 bg-primary text-primary-foreground px-4 py-2 rounded-xl font-medium hover:bg-primary/90 transition-colors shadow-lg shadow-primary/20"
-          >
-            <ScanLine className="w-4 h-4" /> Scan Item
-          </button>
+           {inventory.length === 0 && (
+             <button onClick={loadSeedData} className="px-3 py-2 bg-slate-800 text-slate-300 rounded-lg text-sm font-medium">Load Demo</button>
+           )}
+           <button onClick={() => setShowAddModal(true)} className="px-4 py-2 bg-orange-500 text-white rounded-lg text-sm font-bold shadow-lg shadow-orange-500/20 flex items-center gap-2">
+             <ScanLine className="w-4 h-4" /> Scan
+           </button>
         </div>
       </div>
 
-      {/* Search & Filter */}
-      <div className="flex flex-col gap-4">
+      <div className="space-y-4">
+        {/* Search & Filter */}
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
           <input 
             type="text" 
-            placeholder="Search by name, brand, or type..." 
-            className="w-full bg-card/50 border border-white/10 rounded-xl pl-10 pr-4 py-3 text-sm focus:outline-none focus:ring-1 focus:ring-primary/50 text-white placeholder:text-muted-foreground/50 transition-all"
+            placeholder="Search inventory..." 
             value={search}
             onChange={(e) => setSearch(e.target.value)}
+            className="w-full bg-slate-900 border border-slate-800 rounded-xl pl-10 pr-4 py-3 text-sm text-white focus:ring-1 focus:ring-orange-500 outline-none"
           />
         </div>
         
-        <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-none mask-fade-right">
+        <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-none">
           <button 
-            onClick={() => setFilter('all')}
-            className={cn(
-              "px-4 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all border",
-              filter === 'all' 
-                ? "bg-primary text-primary-foreground border-primary" 
-                : "bg-transparent text-muted-foreground border-white/10 hover:border-white/20"
-            )}
+             onClick={() => setFilter('all')}
+             className={cn("px-3 py-1.5 rounded-full text-xs font-medium border transition-colors", filter === 'all' ? "bg-orange-500 text-white border-orange-500" : "bg-transparent text-slate-400 border-slate-800")}
           >
-            All Items
+            All
           </button>
-          {CATEGORIES.map(cat => (
+          {categories.map(c => (
             <button 
-              key={cat}
-              onClick={() => setFilter(cat)}
-              className={cn(
-                "px-4 py-1.5 rounded-full text-xs font-medium whitespace-nowrap capitalize transition-all border",
-                filter === cat 
-                  ? "bg-primary text-primary-foreground border-primary" 
-                  : "bg-transparent text-muted-foreground border-white/10 hover:border-white/20"
-              )}
+               key={c}
+               onClick={() => setFilter(c)}
+               className={cn("px-3 py-1.5 rounded-full text-xs font-medium border transition-colors capitalize", filter === c ? "bg-orange-500 text-white border-orange-500" : "bg-transparent text-slate-400 border-slate-800")}
             >
-              {cat}
+              {c}
             </button>
           ))}
         </div>
       </div>
 
-      {/* Inventory Grid */}
-      {filteredItems.length === 0 ? (
-        <div className="flex-1 flex flex-col items-center justify-center text-center p-8 border border-dashed border-white/10 rounded-3xl min-h-[300px]">
-          <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mb-4">
-             <Search className="w-8 h-8 text-muted-foreground" />
-          </div>
-          <p className="text-muted-foreground">No items found matching your filters.</p>
-        </div>
-      ) : (
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 pb-20">
-          {filteredItems.map((item) => (
-            <div key={item.id} className="group relative aspect-[3/4] bg-card/40 rounded-2xl overflow-hidden border border-white/5 hover:border-primary/30 transition-all hover:shadow-lg hover:shadow-primary/5">
-              {/* Image */}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent z-10" />
-              
-              {item.image ? (
-                 <img src={item.image} alt={item.name} className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 opacity-80 group-hover:opacity-100" />
-              ) : (
-                 <div className="absolute inset-0 flex items-center justify-center bg-white/5">
-                   <span className="text-4xl opacity-20 font-serif font-bold">{item.name[0]}</span>
-                 </div>
-              )}
-             
-              {/* Content */}
-              <div className="absolute bottom-0 left-0 right-0 p-4 z-20">
-                <div className="flex gap-2 mb-2">
-                   <span className="inline-block px-2 py-0.5 rounded-sm bg-white/10 backdrop-blur-md text-[10px] font-bold uppercase tracking-wider text-white/80">
-                    {item.category}
-                   </span>
-                   {userSettings.enableCostTracking && item.price && (
-                      <span className="inline-block px-2 py-0.5 rounded-sm bg-green-500/20 backdrop-blur-md text-[10px] font-bold text-green-400">
-                        ${item.price}
-                      </span>
-                   )}
-                </div>
+      {/* Grid */}
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 pb-24">
+         {filteredItems.length === 0 ? (
+           <div className="col-span-full py-12 text-center text-slate-500 border border-dashed border-slate-800 rounded-2xl">
+             <FlaskConical className="w-12 h-12 mx-auto mb-3 opacity-50" />
+             <p>No items found.</p>
+           </div>
+         ) : (
+           filteredItems.map(item => (
+             <div key={item.id} className="relative aspect-[3/4] bg-slate-900 rounded-2xl border border-slate-800 overflow-hidden group">
+                {item.photo ? (
+                  <img src={item.photo} className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:opacity-100 transition-opacity" />
+                ) : (
+                  <div className="absolute inset-0 flex items-center justify-center bg-slate-800">
+                    <span className="text-4xl font-serif text-slate-600 font-bold">{item.name[0]}</span>
+                  </div>
+                )}
                 
-                <h3 className="text-lg font-serif font-bold text-white leading-tight mb-1">{item.name}</h3>
-                {item.brand && <p className="text-xs text-muted-foreground font-medium">{item.brand}</p>}
-              </div>
+                <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/90 to-transparent">
+                  <div className="flex gap-1 mb-1">
+                     <span className="text-[10px] font-bold uppercase bg-white/10 text-slate-300 px-1.5 py-0.5 rounded">{item.category}</span>
+                     {settings.enableCostTracking && item.price && (
+                       <span className="text-[10px] font-bold uppercase bg-green-500/20 text-green-400 px-1.5 py-0.5 rounded flex items-center gap-0.5">
+                         <DollarSign className="w-2 h-2" />{item.price}
+                       </span>
+                     )}
+                  </div>
+                  <h3 className="font-serif font-bold text-white leading-tight">{item.name}</h3>
+                  {item.brand && <p className="text-xs text-slate-400">{item.brand}</p>}
+                </div>
 
-              {/* Actions */}
-              <div className="absolute top-2 right-2 z-30 opacity-0 group-hover:opacity-100 transition-opacity flex gap-2">
-                 <button className="p-2 bg-black/50 backdrop-blur-md rounded-full text-white hover:bg-primary hover:text-primary-foreground transition-colors">
-                   <Edit2 className="w-3 h-3" />
-                 </button>
-                 <button 
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    removeItem(item.id);
-                  }}
-                  className="p-2 bg-black/50 backdrop-blur-md rounded-full text-white hover:bg-destructive hover:text-white transition-colors"
-                 >
-                   <Trash2 className="w-3 h-3" />
-                 </button>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
+                <button 
+                  onClick={() => removeInventoryItem(item.id)}
+                  className="absolute top-2 right-2 p-2 bg-black/50 rounded-full text-white opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-500/80"
+                >
+                  <Trash2 className="w-3 h-3" />
+                </button>
+             </div>
+           ))
+         )}
+      </div>
     </div>
   );
 }

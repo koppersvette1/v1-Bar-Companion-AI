@@ -1,106 +1,113 @@
 import { Link, useLocation } from "wouter";
-import { Home, Library, Martini, Flame, User, ScanLine, UtensilsCrossed } from "lucide-react";
+import { Home, Library, Martini, Flame, Users, BookHeart, Settings } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useState } from "react";
-import DiagnosticsModal from "./diagnostics";
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   const [location] = useLocation();
-  const [showDiagnostics, setShowDiagnostics] = useState(false);
 
   const navItems = [
     { href: "/", icon: Home, label: "Home" },
     { href: "/inventory", icon: Library, label: "My Bar" },
-    { href: "/make", icon: Martini, label: "Make" },
+    { href: "/cocktails", icon: Martini, label: "Drinks" },
     { href: "/smoker", icon: Flame, label: "Smoker" },
-    { href: "/pair", icon: UtensilsCrossed, label: "Pair" },
+    { href: "/people", icon: Users, label: "People" },
   ];
 
   return (
-    <div className="min-h-screen bg-background text-foreground flex flex-col font-sans selection:bg-primary selection:text-primary-foreground overflow-x-hidden">
-      <DiagnosticsModal open={showDiagnostics} onOpenChange={setShowDiagnostics} />
-
+    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans selection:bg-orange-500 selection:text-white pb-20 md:pb-0">
+      
       {/* Mobile Header */}
-      <header className="sticky top-0 z-50 glass-panel border-b border-border/40 px-4 py-3 flex items-center justify-between md:hidden backdrop-blur-xl bg-background/80">
-        <h1 className="text-xl font-serif font-bold tracking-tight text-primary flex items-center gap-2">
-          <Flame className="w-5 h-5 text-orange-500 fill-orange-500/20" />
-          BarBuddy
-        </h1>
-        <button 
-          onClick={() => setShowDiagnostics(true)}
-          className="w-8 h-8 rounded-full bg-secondary/50 flex items-center justify-center border border-white/5"
-        >
-          <User className="w-4 h-4 text-muted-foreground" />
-        </button>
+      <header className="sticky top-0 z-50 bg-slate-900/80 backdrop-blur-md border-b border-slate-800 px-4 py-3 flex items-center justify-between md:hidden">
+        <Link href="/">
+          <a className="text-xl font-serif font-bold tracking-tight text-orange-500 flex items-center gap-2">
+            <Flame className="w-5 h-5 fill-orange-500/20" />
+            BarBuddy
+          </a>
+        </Link>
+        <Link href="/settings">
+          <a className="p-2 rounded-full hover:bg-white/5 active:bg-white/10 transition-colors">
+            <Settings className="w-5 h-5 text-slate-400" />
+          </a>
+        </Link>
       </header>
 
       {/* Desktop Sidebar / Mobile Content Wrapper */}
       <div className="flex-1 flex flex-col md:flex-row max-w-7xl mx-auto w-full">
         
         {/* Desktop Sidebar */}
-        <aside className="hidden md:flex w-64 flex-col gap-8 p-8 sticky top-0 h-screen border-r border-border/20">
-          <div className="mb-4">
-            <h1 className="text-3xl font-serif font-bold text-primary tracking-tight flex items-center gap-2">
-              <Flame className="w-8 h-8 text-orange-500 fill-orange-500/20" />
-              BarBuddy
-            </h1>
-            <p className="text-sm text-muted-foreground mt-1 ml-10">Master the smoke.</p>
+        <aside className="hidden md:flex w-64 flex-col gap-6 p-6 sticky top-0 h-screen border-r border-slate-800 bg-slate-950/50">
+          <div className="mb-2">
+            <Link href="/">
+              <a className="text-2xl font-serif font-bold text-orange-500 tracking-tight flex items-center gap-2">
+                <Flame className="w-7 h-7 fill-orange-500/20" />
+                BarBuddy
+              </a>
+            </Link>
+            <p className="text-xs text-slate-500 mt-1 ml-9">Hybrid Intelligence</p>
           </div>
 
-          <nav className="flex flex-col gap-2">
+          <nav className="flex flex-col gap-1">
             {navItems.map((item) => (
               <Link key={item.href} href={item.href}>
                 <a className={cn(
-                  "flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 group font-medium",
+                  "flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 group font-medium text-sm",
                   location === item.href 
-                    ? "bg-primary/10 text-primary shadow-sm ring-1 ring-primary/20" 
-                    : "text-muted-foreground hover:text-foreground hover:bg-white/5"
+                    ? "bg-orange-500/10 text-orange-500 shadow-sm ring-1 ring-orange-500/20" 
+                    : "text-slate-400 hover:text-slate-100 hover:bg-slate-900"
                 )}>
-                  <item.icon className={cn("w-5 h-5 transition-colors", location === item.href ? "text-primary" : "text-muted-foreground group-hover:text-foreground")} />
+                  <item.icon className={cn("w-4 h-4 transition-colors", location === item.href ? "text-orange-500" : "text-slate-500 group-hover:text-slate-300")} />
                   {item.label}
                 </a>
               </Link>
             ))}
+            
+            <div className="my-2 border-t border-slate-800" />
+            
+            <Link href="/favorites">
+               <a className={cn(
+                  "flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 group font-medium text-sm",
+                  location === "/favorites" 
+                    ? "bg-orange-500/10 text-orange-500" 
+                    : "text-slate-400 hover:text-slate-100 hover:bg-slate-900"
+                )}>
+                  <BookHeart className="w-4 h-4 text-slate-500 group-hover:text-slate-300" />
+                  Favorites
+               </a>
+            </Link>
+             <Link href="/settings">
+               <a className={cn(
+                  "flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 group font-medium text-sm",
+                  location === "/settings" 
+                    ? "bg-orange-500/10 text-orange-500" 
+                    : "text-slate-400 hover:text-slate-100 hover:bg-slate-900"
+                )}>
+                  <Settings className="w-4 h-4 text-slate-500 group-hover:text-slate-300" />
+                  Settings
+               </a>
+            </Link>
           </nav>
-
-          <div className="mt-auto space-y-4">
-            <div className="glass-card p-4 rounded-xl border border-white/5 bg-gradient-to-br from-card to-transparent">
-              <p className="text-xs text-muted-foreground mb-2 font-bold uppercase tracking-wider">My Kit</p>
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-white">Guest User</span>
-                <button onClick={() => setShowDiagnostics(true)} className="p-1 hover:bg-white/10 rounded">
-                   <User className="w-4 h-4 text-muted-foreground" />
-                </button>
-              </div>
-            </div>
-          </div>
         </aside>
 
         {/* Main Content */}
-        <main className="flex-1 p-4 md:p-8 pb-24 md:pb-8 overflow-y-auto min-h-screen">
-          <div className="max-w-4xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-700">
+        <main className="flex-1 p-4 md:p-8 overflow-y-auto min-h-screen">
+          <div className="max-w-4xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500">
             {children}
           </div>
         </main>
       </div>
 
       {/* Mobile Bottom Nav */}
-      <nav className="fixed bottom-0 left-0 right-0 glass-panel border-t border-border/40 pb-safe md:hidden z-50 bg-background/95 backdrop-blur-xl">
-        <div className="flex items-center justify-around p-2">
+      <nav className="fixed bottom-0 left-0 right-0 bg-slate-900/90 backdrop-blur-xl border-t border-slate-800 pb-safe md:hidden z-50">
+        <div className="flex items-center justify-around p-1">
           {navItems.map((item) => (
             <Link key={item.href} href={item.href}>
               <a className={cn(
                 "flex flex-col items-center gap-1 p-2 rounded-xl transition-all duration-200 min-w-[60px]",
                 location === item.href 
-                  ? "text-primary scale-105" 
-                  : "text-muted-foreground active:scale-95"
+                  ? "text-orange-500" 
+                  : "text-slate-500 active:text-slate-300"
               )}>
-                <div className={cn(
-                  "p-1.5 rounded-full transition-colors", 
-                  location === item.href ? "bg-primary/10" : "bg-transparent"
-                )}>
-                  <item.icon className={cn("w-5 h-5", location === item.href && "fill-current")} />
-                </div>
+                <item.icon className={cn("w-6 h-6", location === item.href && "fill-current/20")} strokeWidth={location === item.href ? 2.5 : 2} />
                 <span className="text-[10px] font-medium">{item.label}</span>
               </a>
             </Link>

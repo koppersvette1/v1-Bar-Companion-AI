@@ -1,196 +1,161 @@
+import { useStore } from "@/lib/store";
+import { Flame, Wind, Play, Info, RotateCcw, Plus, Check } from "lucide-react";
 import { useState, useEffect } from "react";
-import { useStore, Wood } from "@/lib/store";
-import { Flame, Timer, AlertCircle, Info, Wind, Play, RotateCcw } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { getSafeSmokeTime } from "@/lib/logic/rules";
 
-export default function SmokerMode() {
-  const { woodLibrary, userSettings, toggleWoodInKit } = useStore();
-  const [selectedWood, setSelectedWood] = useState<Wood | null>(null);
-  const [timerActive, setTimerActive] = useState(false);
-  const [timeLeft, setTimeLeft] = useState(0);
-  const [phase, setPhase] = useState<'idle' | 'smoking' | 'resting' | 'done'>('idle');
+export default function Smoker() {
+  const { woodLibrary, toggleWoodKit, settings, updateSettings } = useStore();
+  const [activeWood, setActiveWood] = useState<string | null>(null);
+  const [timer, setTimer] = useState(0);
+  const [phase, setPhase] = useState<'idle' | 'smoking' | 'resting'>('idle');
 
-  const myWoods = woodLibrary.filter(w => w.isInMyKit);
-
+  // Timer logic
   useEffect(() => {
-    let interval: NodeJS.Timeout;
-    if (timerActive && timeLeft > 0) {
-      interval = setInterval(() => {
-        setTimeLeft((prev) => prev - 1);
-      }, 1000);
-    } else if (timerActive && timeLeft === 0) {
-      // Phase transition
-      if (phase === 'smoking') {
-        setPhase('resting');
-        setTimeLeft(25); // Standard rest time
-      } else if (phase === 'resting') {
-        setPhase('done');
-        setTimerActive(false);
-      }
+    let interval: any;
+    if (phase !== 'idle' && timer > 0) {
+      interval = setInterval(() => setTimer(t => t - 1), 1000);
+    } else if (phase === 'smoking' && timer === 0) {
+      setPhase('resting');
+      setTimer(25); // Standard rest
+    } else if (phase === 'resting' && timer === 0) {
+      setPhase('idle');
+      setActiveWood(null);
     }
     return () => clearInterval(interval);
-  }, [timerActive, timeLeft, phase]);
+  }, [phase, timer]);
 
-  const startSmoke = (wood: Wood) => {
-    setSelectedWood(wood);
+  const startSession = (woodId: string) => {
+    const wood = woodLibrary.find(w => w.id === woodId);
+    if (!wood) return;
+    
+    // Use rules for safe time
+    const safeTime = getSafeSmokeTime(wood.name, wood.intensity);
+    
+    setActiveWood(woodId);
     setPhase('smoking');
-    setTimeLeft(wood.recommendedTimeSecondsMin); // Start with min recommended
-    setTimerActive(true);
+    setTimer(safeTime);
   };
 
-  const reset = () => {
+  const cancelSession = () => {
     setPhase('idle');
-    setTimerActive(false);
-    setTimeLeft(0);
+    setTimer(0);
+    setActiveWood(null);
   };
 
-  if (!userSettings.hasSmoker) {
+  if (!settings.hasSmoker) {
     return (
-      <div className="flex flex-col items-center justify-center h-[60vh] text-center space-y-6">
-        <div className="w-20 h-20 rounded-full bg-orange-500/10 flex items-center justify-center">
-          <Flame className="w-10 h-10 text-orange-500" />
+      <div className="flex flex-col items-center justify-center h-[60vh] text-center px-4">
+        <div className="w-24 h-24 bg-orange-500/10 rounded-full flex items-center justify-center mb-6">
+          <Flame className="w-12 h-12 text-orange-500" />
         </div>
-        <div className="max-w-md space-y-2">
-          <h2 className="text-2xl font-serif font-bold text-white">Enable Smoker Mode</h2>
-          <p className="text-muted-foreground">Unlock the full flavor potential of your bar. If you own a cocktail smoker, enable it to get wood pairing recommendations and guided timers.</p>
-        </div>
-        <button className="px-8 py-3 bg-primary text-primary-foreground font-bold rounded-xl hover:bg-primary/90 transition-all">
+        <h2 className="text-2xl font-serif font-bold text-white mb-2">Unlock Smoker Mode</h2>
+        <p className="text-slate-400 max-w-sm mb-6">
+          Enable this feature to get wood pairings, safety timers, and guided smoking sessions for your cocktails.
+        </p>
+        <button 
+          onClick={() => updateSettings({ hasSmoker: true })}
+          className="px-6 py-3 bg-orange-500 text-white font-bold rounded-xl shadow-lg shadow-orange-500/20"
+        >
           I have a Smoker
         </button>
       </div>
     );
   }
 
+  const activeWoodObj = woodLibrary.find(w => w.id === activeWood);
+
   return (
     <div className="space-y-8 pb-20">
+      
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-serif font-bold text-white flex items-center gap-3">
-            <Wind className="w-8 h-8 text-muted-foreground" />
-            Smoker Lab
-          </h1>
-          <p className="text-muted-foreground">Guided smoking sessions and wood pairings.</p>
-        </div>
+         <div>
+           <h1 className="text-3xl font-serif font-bold text-white flex items-center gap-2">
+             <Wind className="w-8 h-8 text-slate-400" />
+             Smoker Lab
+           </h1>
+           <p className="text-slate-400 text-sm">Wood profiles & guided sessions</p>
+         </div>
       </div>
 
-      {/* ACTIVE SESSION */}
-      {phase !== 'idle' ? (
-        <div className="glass-card p-8 rounded-3xl border-orange-500/30 bg-gradient-to-b from-card to-background relative overflow-hidden">
-          {/* Background Pulse */}
-          {timerActive && phase === 'smoking' && (
-             <div className="absolute inset-0 bg-orange-500/5 animate-pulse" />
-          )}
+      {/* Active Session Card */}
+      {phase !== 'idle' && activeWoodObj ? (
+        <div className="bg-gradient-to-br from-orange-950/50 to-slate-900 border border-orange-500/30 rounded-3xl p-8 text-center relative overflow-hidden">
+           <div className="absolute inset-0 bg-orange-500/5 animate-pulse" />
+           <div className="relative z-10">
+             <div className="inline-block px-3 py-1 bg-orange-500/20 text-orange-400 text-xs font-bold uppercase rounded-full mb-6">
+               {phase === 'smoking' ? 'Apply Smoke' : 'Let it Rest'}
+             </div>
+             
+             <div className="text-8xl font-mono font-bold text-white mb-2">{timer}s</div>
+             <p className="text-slate-400 mb-8">
+               {phase === 'smoking' ? `Torching ${activeWoodObj.name} chips...` : "Allowing smoke to infuse..."}
+             </p>
 
-          <div className="relative z-10 flex flex-col items-center text-center space-y-6">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-orange-500/20 text-orange-400 font-bold text-xs uppercase tracking-wider border border-orange-500/20">
-              {phase === 'smoking' ? 'Apply Smoke' : phase === 'resting' ? 'Rest & infuse' : 'Ready to Serve'}
-            </div>
-
-            <div className="relative">
-              <svg className="w-48 h-48 transform -rotate-90">
-                <circle cx="96" cy="96" r="88" stroke="currentColor" strokeWidth="8" fill="transparent" className="text-white/5" />
-                <circle 
-                  cx="96" cy="96" r="88" 
-                  stroke="currentColor" strokeWidth="8" 
-                  fill="transparent" 
-                  className={phase === 'smoking' ? "text-orange-500 transition-all duration-1000" : "text-blue-500 transition-all duration-1000"}
-                  strokeDasharray={552}
-                  strokeDashoffset={552 - (552 * timeLeft) / (phase === 'smoking' ? (selectedWood?.recommendedTimeSecondsMin || 15) : 25)}
-                />
-              </svg>
-              <div className="absolute inset-0 flex items-center justify-center flex-col">
-                <span className="text-6xl font-bold font-mono text-white">{timeLeft}s</span>
-                <span className="text-xs text-muted-foreground uppercase mt-2">{selectedWood?.name}</span>
-              </div>
-            </div>
-
-            <div className="space-y-2 max-w-sm">
-              <h3 className="text-xl font-bold text-white">
-                {phase === 'smoking' ? "Torch the wood chips" : phase === 'resting' ? "Let the smoke settle" : "Remove smoker & enjoy"}
-              </h3>
-              <p className="text-sm text-muted-foreground">
-                {phase === 'smoking' ? "Keep the torch moving. Fill the glass until opaque." : phase === 'resting' ? "This allows the harshest phenols to dissipate." : "Garnish immediately to trap the aroma."}
-              </p>
-            </div>
-
-            {phase === 'done' ? (
-               <button onClick={reset} className="px-8 py-3 bg-white/10 text-white font-bold rounded-xl hover:bg-white/20 transition-all">
-                 Finish Session
-               </button>
-            ) : (
-               <button onClick={reset} className="text-muted-foreground hover:text-white text-sm flex items-center gap-2">
-                 <RotateCcw className="w-4 h-4" /> Cancel
-               </button>
-            )}
-          </div>
+             <button onClick={cancelSession} className="flex items-center gap-2 mx-auto text-slate-500 hover:text-white text-sm">
+               <RotateCcw className="w-4 h-4" /> Cancel Session
+             </button>
+           </div>
         </div>
       ) : (
-        /* WOOD SELECTOR */
-        <div className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {woodLibrary.map((wood) => (
-              <div 
-                key={wood.name} 
-                className={cn(
-                  "group relative p-6 rounded-2xl border transition-all hover:shadow-lg cursor-pointer",
-                  wood.isInMyKit 
-                    ? "bg-card/40 border-white/10 hover:border-primary/50" 
-                    : "bg-black/20 border-white/5 opacity-60 grayscale hover:grayscale-0 hover:opacity-100"
-                )}
-                onClick={() => wood.isInMyKit && startSmoke(wood)}
-              >
-                <div className="flex justify-between items-start mb-4">
-                  <div className="flex flex-col">
-                    <h3 className="text-xl font-serif font-bold text-white group-hover:text-primary transition-colors">{wood.name}</h3>
-                    <span className={cn(
-                      "text-xs font-bold uppercase tracking-wider mt-1",
-                      wood.intensity === 'light' ? 'text-green-400' :
-                      wood.intensity === 'medium' ? 'text-yellow-400' :
-                      'text-red-400'
-                    )}>
-                      {wood.intensity} Intensity
-                    </span>
-                  </div>
-                  {!wood.isInMyKit && (
-                    <button 
-                      onClick={(e) => { e.stopPropagation(); toggleWoodInKit(wood.name); }}
-                      className="text-xs bg-white/10 px-2 py-1 rounded text-white hover:bg-primary hover:text-primary-foreground transition-colors"
-                    >
-                      + Add to Kit
-                    </button>
-                  )}
-                </div>
+        /* Wood Library */
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {woodLibrary.map(wood => (
+            <div key={wood.id} className={cn(
+               "p-6 rounded-2xl border transition-all relative group",
+               wood.isInMyKit ? "bg-slate-900 border-slate-800 hover:border-orange-500/50" : "bg-slate-950 border-slate-900 opacity-60"
+            )}>
+               <div className="flex justify-between items-start mb-4">
+                 <div>
+                   <h3 className="text-xl font-bold font-serif text-white">{wood.name}</h3>
+                   <div className="flex items-center gap-2 mt-1">
+                     <span className={cn(
+                       "text-[10px] font-bold uppercase tracking-wider",
+                       wood.intensity === 'light' ? "text-green-400" : 
+                       wood.intensity === 'medium' ? "text-yellow-400" : "text-red-400"
+                     )}>{wood.intensity}</span>
+                     {wood.beginnerSafe && <span className="text-[10px] text-slate-500 border border-slate-800 px-1 rounded">SAFE</span>}
+                   </div>
+                 </div>
+                 
+                 <button 
+                   onClick={() => toggleWoodKit(wood.id)}
+                   className={cn("p-2 rounded-full", wood.isInMyKit ? "text-orange-500 bg-orange-500/10" : "text-slate-600 hover:text-slate-400")}
+                 >
+                   {wood.isInMyKit ? <Check className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
+                 </button>
+               </div>
 
-                <p className="text-sm text-muted-foreground mb-4 line-clamp-2 min-h-[40px]">{wood.tastingNotes}</p>
-                
-                <div className="flex flex-wrap gap-2">
-                  {wood.bestWithFoodTags.slice(0, 2).map(tag => (
-                    <span key={tag} className="text-[10px] px-2 py-1 rounded bg-black/40 text-muted-foreground border border-white/5 capitalize">
-                      {tag}
-                    </span>
+               <p className="text-sm text-slate-400 line-clamp-2 mb-4 h-10">{wood.tastingNotes}</p>
+
+               <div className="flex flex-wrap gap-1.5 mb-4">
+                  {wood.flavorTags.slice(0,3).map(t => (
+                    <span key={t} className="text-[10px] px-1.5 py-0.5 bg-slate-800 text-slate-300 rounded capitalize">{t}</span>
                   ))}
-                </div>
+               </div>
 
-                {wood.isInMyKit && (
-                  <div className="absolute bottom-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground shadow-lg shadow-primary/20">
-                      <Play className="w-4 h-4 ml-0.5" />
-                    </div>
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-
-          <div className="glass-card p-6 rounded-2xl flex gap-4 items-start border-l-4 border-l-blue-500">
-             <Info className="w-5 h-5 text-blue-400 flex-shrink-0 mt-1" />
-             <div className="space-y-1">
-               <h4 className="font-bold text-white text-sm">Pro Tip: The Golden Rule of Smoke</h4>
-               <p className="text-sm text-muted-foreground">Smoke adheres best to chilled surfaces and moisture. Always chill your glass before smoking, and consider expressing a citrus peel *after* the smoke clears to brighten the flavor.</p>
-             </div>
-          </div>
+               {wood.isInMyKit && (
+                 <button 
+                   onClick={() => startSession(wood.id)}
+                   className="w-full py-2 bg-slate-800 hover:bg-orange-500 hover:text-white text-slate-300 rounded-lg text-sm font-bold transition-colors flex items-center justify-center gap-2"
+                 >
+                   <Play className="w-3 h-3" /> Smoke
+                 </button>
+               )}
+            </div>
+          ))}
         </div>
       )}
+      
+      <div className="p-4 bg-blue-500/10 border border-blue-500/20 rounded-xl flex gap-3 items-start">
+         <Info className="w-5 h-5 text-blue-400 flex-shrink-0 mt-0.5" />
+         <div>
+           <h4 className="text-sm font-bold text-blue-400">Safety Cap Active</h4>
+           <p className="text-xs text-blue-200/70 mt-1">
+             The system automatically caps strong woods like Mesquite to 7s to prevent acrid flavors.
+           </p>
+         </div>
+      </div>
     </div>
   );
 }

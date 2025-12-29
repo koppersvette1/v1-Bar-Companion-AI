@@ -1,138 +1,332 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import cocktailImage from '@assets/generated_images/classic_old_fashioned_cocktail.png';
+import { v4 as uuidv4 } from 'uuid';
 
-// --- Types ---
+// --- Domain Types ---
 
 export type Intensity = 'light' | 'medium' | 'bold' | 'very-strong';
-export type WoodName = 'Apple' | 'Cherry' | 'Oak' | 'Pecan' | 'Hickory' | 'Mesquite' | 'Maple' | 'Alder';
+export type WoodName = string; // e.g., 'Apple', 'Hickory'
 
 export interface Wood {
+  id: string;
   name: WoodName;
   intensity: Intensity;
-  recommendedTimeSecondsMin: number;
-  recommendedTimeSecondsMax: number;
+  timeMin: number;
+  timeMax: number;
   purpose: string;
   tastingNotes: string;
+  flavorTags: string[]; // fruity, savory, etc.
   bestWithDrinkTags: string[];
   bestWithFoodTags: string[];
+  avoidWithDrinkTags: string[];
+  beginnerSafe: boolean;
   isInMyKit: boolean;
+  methodRestriction?: 'garnishOnly';
+  isCustom?: boolean;
 }
 
-export type Category = 'spirit' | 'liqueur' | 'bitters' | 'mixer' | 'syrup' | 'garnish' | 'tool' | 'accessory';
-
-export interface Item {
+export interface InventoryItem {
   id: string;
   name: string;
   brand?: string;
-  category: Category;
-  subtype?: string;
+  category: string; // spirit, mixer, garnish, etc.
+  subtype?: string; // bourbon, rye, ipa
   abv?: number;
-  quantity: number; // 0-100% or count
+  photo?: string;
   notes?: string;
-  image?: string;
-  dateAdded: number;
-  // Cost Tracking Fields
+  quantity: number;
+  bottleSizeMl?: number;
   price?: number;
-  currency?: string;
-  bottleSize?: number; // volume
-  bottleUnit?: 'ml' | 'oz' | 'l';
   store?: string;
+  tags: string[];
+  updatedAt: number;
+}
+
+export interface PersonProfile {
+  id: string;
+  name: string;
+  sweetnessPref: 'dry' | 'balanced' | 'sweet'; // 1-3
+  abvComfort: 'low' | 'medium' | 'high';
+  likedTags: string[]; // 'citrus', 'smoky'
+  dislikedTags: string[]; // 'bitter', 'dairy'
+  seasonalPref: 'neutral' | 'warm-weather' | 'cool-weather';
+  winePref?: {
+    dry: boolean;
+    minAbv: number;
+  };
+  tasteWeights: Record<string, number>; // Dynamic learning weights
+}
+
+export interface Recipe {
+  id: string;
+  name: string;
+  description: string;
+  baseSpirit: string;
+  style: 'classic' | 'modern' | 'tiki' | 'smoky' | 'low-abv';
+  ingredients: { name: string; amount: string; unit?: string }[];
+  steps: string[];
+  glassware: string;
+  garnish: string;
+  isSmoked: boolean;
+  recommendedWood?: string;
+  smokeTime?: number;
+  tags: string[]; // bitter, sweet, sour, boozy, etc.
+  sourceUrl?: string;
+  sourceName?: string;
+}
+
+export interface HistoryEntry {
+  id: string;
+  recipeId: string;
+  recipeName: string;
+  timestamp: number;
+  rating?: number; // 1-5
+  notes?: string;
+  tuning?: {
+    action: string;
+    diff: string;
+  };
+  smoked?: {
+    wood: string;
+    time: number;
+  };
 }
 
 export interface UserSettings {
-  name: string;
+  email: string;
   hasSmoker: boolean;
   smokerDeviceName?: string;
-  preferredIntensity: Intensity;
+  defaultIntensity: Intensity;
   enableCostTracking: boolean;
+  woodAffinity: Record<string, number>; // Learning weights for woods
 }
 
 export interface AppState {
-  inventory: Item[];
+  // Data
+  inventory: InventoryItem[];
   woodLibrary: Wood[];
-  userSettings: UserSettings;
-  
+  people: PersonProfile[];
+  recipes: Recipe[];
+  favorites: string[]; // Recipe IDs
+  history: HistoryEntry[];
+  settings: UserSettings;
+
   // Actions
-  addItem: (item: Item) => void;
-  updateItem: (id: string, updates: Partial<Item>) => void;
-  removeItem: (id: string) => void;
-  toggleWoodInKit: (woodName: WoodName) => void;
+  // Inventory
+  addInventoryItem: (item: Omit<InventoryItem, 'id' | 'updatedAt'>) => void;
+  updateInventoryItem: (id: string, updates: Partial<InventoryItem>) => void;
+  removeInventoryItem: (id: string) => void;
+
+  // Woods
+  toggleWoodKit: (woodId: string) => void;
+  updateWood: (id: string, updates: Partial<Wood>) => void;
+
+  // People
+  addPerson: (person: Omit<PersonProfile, 'id' | 'tasteWeights'>) => void;
+  updatePerson: (id: string, updates: Partial<PersonProfile>) => void;
+  deletePerson: (id: string) => void;
+
+  // Recipes
+  addRecipe: (recipe: Recipe) => void; // User generated or imported
+  toggleFavorite: (recipeId: string) => void;
+  
+  // History & Learning
+  logHistory: (entry: Omit<HistoryEntry, 'id'>) => void;
+  
+  // Settings
   updateSettings: (updates: Partial<UserSettings>) => void;
-  loadDemoData: () => void;
+  
+  // System
+  loadSeedData: () => void;
   reset: () => void;
 }
 
-// --- Seed Data ---
+// --- Seed Data Implementation ---
 
 const SEED_WOODS: Wood[] = [
-  { name: 'Apple', intensity: 'light', recommendedTimeSecondsMin: 15, recommendedTimeSecondsMax: 20, purpose: 'Gentle sweet aroma', tastingNotes: 'Fruity, mild smoke', bestWithDrinkTags: ['sour', 'citrus', 'light'], bestWithFoodTags: ['chicken', 'pork', 'cheese'], isInMyKit: true },
-  { name: 'Cherry', intensity: 'medium', recommendedTimeSecondsMin: 12, recommendedTimeSecondsMax: 18, purpose: 'Sweet richness', tastingNotes: 'Sweet, fruity, rounded', bestWithDrinkTags: ['old-fashioned', 'manhattan', 'bourbon'], bestWithFoodTags: ['pork', 'duck', 'chocolate'], isInMyKit: true },
-  { name: 'Oak', intensity: 'medium', recommendedTimeSecondsMin: 8, recommendedTimeSecondsMax: 12, purpose: 'Barrel accent', tastingNotes: 'Vanilla, toast, woody', bestWithDrinkTags: ['neat', 'classic'], bestWithFoodTags: ['steak', 'beef', 'aged-cheese'], isInMyKit: true },
-  { name: 'Pecan', intensity: 'medium', recommendedTimeSecondsMin: 12, recommendedTimeSecondsMax: 15, purpose: 'Warm nutty', tastingNotes: 'Nutty, spicy, rich', bestWithDrinkTags: ['fall', 'maple'], bestWithFoodTags: ['turkey', 'squash', 'caramel'], isInMyKit: false },
-  { name: 'Hickory', intensity: 'bold', recommendedTimeSecondsMin: 5, recommendedTimeSecondsMax: 8, purpose: 'Savory bold', tastingNotes: 'Bacon-like, pungent, strong', bestWithDrinkTags: ['bloody-mary', 'bold'], bestWithFoodTags: ['brisket', 'ribs'], isInMyKit: true },
-  { name: 'Mesquite', intensity: 'very-strong', recommendedTimeSecondsMin: 5, recommendedTimeSecondsMax: 7, purpose: 'Aggressive campfire', tastingNotes: 'Earthy, sharp, intense', bestWithDrinkTags: ['mezcal', 'tequila'], bestWithFoodTags: ['tex-mex', 'steak'], isInMyKit: false },
-  { name: 'Maple', intensity: 'light', recommendedTimeSecondsMin: 10, recommendedTimeSecondsMax: 15, purpose: 'Toasted sugar', tastingNotes: 'Sweet, smooth, mild', bestWithDrinkTags: ['dessert', 'coffee', 'bourbon'], bestWithFoodTags: ['breakfast', 'dessert'], isInMyKit: false },
-  { name: 'Alder', intensity: 'light', recommendedTimeSecondsMin: 12, recommendedTimeSecondsMax: 15, purpose: 'Clean mild', tastingNotes: 'Neutral, light wood', bestWithDrinkTags: ['gin', 'vodka'], bestWithFoodTags: ['seafood', 'poultry'], isInMyKit: false },
+  { id: 'wood-apple', name: 'Apple', intensity: 'light', timeMin: 15, timeMax: 20, purpose: 'Gentle sweet aroma', tastingNotes: 'Fruity, mild smoke', flavorTags: ['fruity', 'sweet'], bestWithDrinkTags: ['sour', 'citrus', 'light'], bestWithFoodTags: ['chicken', 'pork', 'cheese'], avoidWithDrinkTags: ['bold', 'smoky'], beginnerSafe: true, isInMyKit: true },
+  { id: 'wood-cherry', name: 'Cherry', intensity: 'medium', timeMin: 12, timeMax: 18, purpose: 'Sweet richness', tastingNotes: 'Sweet, fruity, rounded', flavorTags: ['fruity', 'rich'], bestWithDrinkTags: ['old-fashioned', 'manhattan', 'bourbon'], bestWithFoodTags: ['pork', 'duck', 'chocolate'], avoidWithDrinkTags: [], beginnerSafe: true, isInMyKit: true },
+  { id: 'wood-oak', name: 'Oak', intensity: 'medium', timeMin: 8, timeMax: 12, purpose: 'Barrel accent', tastingNotes: 'Vanilla, toast, woody', flavorTags: ['toasty', 'vanilla'], bestWithDrinkTags: ['neat', 'classic', 'whiskey'], bestWithFoodTags: ['steak', 'beef', 'aged-cheese'], avoidWithDrinkTags: ['fruity', 'light'], beginnerSafe: true, isInMyKit: true },
+  { id: 'wood-hickory', name: 'Hickory', intensity: 'bold', timeMin: 5, timeMax: 8, purpose: 'Savory bold', tastingNotes: 'Bacon-like, pungent', flavorTags: ['savory', 'campfire'], bestWithDrinkTags: ['bloody-mary', 'bold', 'spicy'], bestWithFoodTags: ['brisket', 'ribs', 'bbq'], avoidWithDrinkTags: ['delicate', 'floral'], beginnerSafe: false, isInMyKit: true },
+  { id: 'wood-mesquite', name: 'Mesquite', intensity: 'very-strong', timeMin: 5, timeMax: 7, purpose: 'Aggressive campfire', tastingNotes: 'Earthy, sharp, intense', flavorTags: ['campfire', 'earthy'], bestWithDrinkTags: ['mezcal', 'tequila'], bestWithFoodTags: ['tex-mex', 'steak'], avoidWithDrinkTags: ['sweet', 'fruity'], beginnerSafe: false, isInMyKit: false },
+  { id: 'wood-pecan', name: 'Pecan', intensity: 'medium', timeMin: 12, timeMax: 15, purpose: 'Warm nutty', tastingNotes: 'Nutty, spicy, rich', flavorTags: ['nutty', 'spicy'], bestWithDrinkTags: ['fall', 'maple', 'rum'], bestWithFoodTags: ['turkey', 'squash', 'caramel'], avoidWithDrinkTags: [], beginnerSafe: true, isInMyKit: false },
+  { id: 'wood-maple', name: 'Maple', intensity: 'light', timeMin: 10, timeMax: 15, purpose: 'Toasted sugar', tastingNotes: 'Sweet, smooth, mild', flavorTags: ['sweet', 'toasty'], bestWithDrinkTags: ['dessert', 'coffee', 'bourbon'], bestWithFoodTags: ['breakfast', 'dessert'], avoidWithDrinkTags: ['savory'], beginnerSafe: true, isInMyKit: false },
+  { id: 'wood-alder', name: 'Alder', intensity: 'light', timeMin: 12, timeMax: 15, purpose: 'Clean mild', tastingNotes: 'Neutral, light wood', flavorTags: ['clean', 'neutral'], bestWithDrinkTags: ['gin', 'vodka', 'martini'], bestWithFoodTags: ['seafood', 'poultry'], avoidWithDrinkTags: ['heavy'], beginnerSafe: true, isInMyKit: false },
+  { id: 'wood-rosemary', name: 'Rosemary', intensity: 'medium', timeMin: 5, timeMax: 10, purpose: 'Herbal aromatic', tastingNotes: 'Piney, fresh', flavorTags: ['herbal', 'fresh'], bestWithDrinkTags: ['gin', 'citrus'], bestWithFoodTags: ['lamb', 'potatoes'], avoidWithDrinkTags: ['sweet', 'creamy'], beginnerSafe: true, isInMyKit: false, methodRestriction: 'garnishOnly' },
 ];
 
-const DEMO_INVENTORY: Item[] = [
-  { id: '1', name: 'Bourbon Whiskey', brand: 'Woodford Reserve', category: 'spirit', subtype: 'Bourbon', abv: 45, quantity: 1, dateAdded: Date.now(), image: cocktailImage, price: 35.99, bottleSize: 750, bottleUnit: 'ml' },
-  { id: '2', name: 'Sweet Vermouth', brand: 'Carpano Antica', category: 'liqueur', subtype: 'Vermouth', quantity: 1, dateAdded: Date.now(), price: 32.00, bottleSize: 1000, bottleUnit: 'ml' },
-  { id: '3', name: 'Angostura Bitters', category: 'bitters', quantity: 1, dateAdded: Date.now(), price: 12.00, bottleSize: 4, bottleUnit: 'oz' },
-  { id: '4', name: 'Campari', category: 'liqueur', subtype: 'Amaro', quantity: 1, dateAdded: Date.now(), price: 28.00, bottleSize: 750, bottleUnit: 'ml' },
-  { id: '5', name: 'London Dry Gin', brand: 'Tanqueray', category: 'spirit', subtype: 'Gin', quantity: 1, dateAdded: Date.now(), price: 24.99, bottleSize: 750, bottleUnit: 'ml' },
-  { id: '6', name: 'Simple Syrup', category: 'syrup', quantity: 1, dateAdded: Date.now(), price: 5.00, bottleSize: 12, bottleUnit: 'oz' },
-  { id: '7', name: 'Cocktail Smoker', brand: 'Foghat', category: 'accessory', quantity: 1, dateAdded: Date.now() },
+const SEED_RECIPES: Recipe[] = [
+  {
+    id: 'old-fashioned',
+    name: "Classic Old Fashioned",
+    description: "The definition of a cocktail: spirits, sugar, water, and bitters.",
+    baseSpirit: "Whiskey",
+    style: "classic",
+    ingredients: [{ name: "Bourbon or Rye", amount: "2 oz" }, { name: "Simple Syrup", amount: "0.25 oz" }, { name: "Angostura Bitters", amount: "2 dashes" }],
+    steps: ["Stir all ingredients with ice.", "Strain into rocks glass over large cube.", "Express orange peel."],
+    glassware: "Rocks",
+    garnish: "Orange Peel",
+    isSmoked: false,
+    tags: ["boozy", "bitter", "sweet", "dinner", "classic"],
+  },
+  {
+    id: 'smoked-old-fashioned',
+    name: "Campfire Old Fashioned",
+    description: "A rich, smoky twist on the classic.",
+    baseSpirit: "Whiskey",
+    style: "smoky",
+    ingredients: [{ name: "Bourbon", amount: "2 oz" }, { name: "Maple Syrup", amount: "0.25 oz" }, { name: "Angostura Bitters", amount: "2 dashes" }],
+    steps: ["Smoke the glass with wood chips.", "Stir ingredients with ice.", "Strain into smoked glass.", "Garnish."],
+    glassware: "Rocks",
+    garnish: "Luxardo Cherry",
+    isSmoked: true,
+    recommendedWood: "Hickory",
+    smokeTime: 8,
+    tags: ["smoky", "boozy", "rich", "winter"],
+  },
+  {
+    id: 'negroni',
+    name: "Negroni",
+    description: "The perfect balance of bitter, sweet, and botanical.",
+    baseSpirit: "Gin",
+    style: "classic",
+    ingredients: [{ name: "Gin", amount: "1 oz" }, { name: "Campari", amount: "1 oz" }, { name: "Sweet Vermouth", amount: "1 oz" }],
+    steps: ["Stir with ice.", "Strain into rocks glass.", "Garnish."],
+    glassware: "Rocks",
+    garnish: "Orange Peel",
+    isSmoked: false,
+    tags: ["bitter", "herbal", "aperitif"],
+  },
+  {
+    id: 'margarita',
+    name: "Tommy's Margarita",
+    description: "A modern classic that highlights the agave flavor.",
+    baseSpirit: "Tequila",
+    style: "classic",
+    ingredients: [{ name: "Tequila Blanco", amount: "2 oz" }, { name: "Fresh Lime Juice", amount: "1 oz" }, { name: "Agave Nectar", amount: "0.5 oz" }],
+    steps: ["Shake with ice.", "Strain into rocks glass with fresh ice."],
+    glassware: "Rocks",
+    garnish: "Lime Wheel + Salt Rim",
+    isSmoked: false,
+    tags: ["sour", "refreshing", "summer"],
+  }
 ];
-
-// --- Store ---
 
 export const useStore = create<AppState>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       inventory: [],
       woodLibrary: SEED_WOODS,
-      userSettings: {
-        name: 'Guest',
+      people: [],
+      recipes: SEED_RECIPES,
+      favorites: [],
+      history: [],
+      settings: {
+        email: 'user@example.com',
         hasSmoker: false,
-        preferredIntensity: 'medium',
+        defaultIntensity: 'medium',
         enableCostTracking: false,
+        woodAffinity: {}
       },
 
-      addItem: (item) => set((state) => ({ inventory: [...state.inventory, item] })),
-      
-      updateItem: (id, updates) => set((state) => ({
-        inventory: state.inventory.map((i) => (i.id === id ? { ...i, ...updates } : i)),
+      // Inventory
+      addInventoryItem: (item) => set((state) => ({ 
+        inventory: [...state.inventory, { ...item, id: uuidv4(), updatedAt: Date.now() }] 
       })),
-      
-      removeItem: (id) => set((state) => ({
-        inventory: state.inventory.filter((i) => i.id !== id),
+      updateInventoryItem: (id, updates) => set((state) => ({
+        inventory: state.inventory.map((i) => (i.id === id ? { ...i, ...updates, updatedAt: Date.now() } : i))
+      })),
+      removeInventoryItem: (id) => set((state) => ({
+        inventory: state.inventory.filter((i) => i.id !== id)
       })),
 
-      toggleWoodInKit: (woodName) => set((state) => ({
+      // Woods
+      toggleWoodKit: (woodId) => set((state) => ({
         woodLibrary: state.woodLibrary.map((w) => 
-          w.name === woodName ? { ...w, isInMyKit: !w.isInMyKit } : w
-        ),
+          w.id === woodId ? { ...w, isInMyKit: !w.isInMyKit } : w
+        )
+      })),
+      updateWood: (id, updates) => set((state) => ({
+        woodLibrary: state.woodLibrary.map((w) => (w.id === id ? { ...w, ...updates } : w))
       })),
 
+      // People
+      addPerson: (person) => set((state) => ({
+        people: [...state.people, { ...person, id: uuidv4(), tasteWeights: {} }]
+      })),
+      updatePerson: (id, updates) => set((state) => ({
+        people: state.people.map((p) => (p.id === id ? { ...p, ...updates } : p))
+      })),
+      deletePerson: (id) => set((state) => ({
+        people: state.people.filter((p) => p.id !== id)
+      })),
+
+      // Recipes
+      addRecipe: (recipe) => set((state) => ({
+        recipes: [...state.recipes, recipe]
+      })),
+      toggleFavorite: (recipeId) => set((state) => {
+        const exists = state.favorites.includes(recipeId);
+        return {
+          favorites: exists 
+            ? state.favorites.filter(id => id !== recipeId)
+            : [...state.favorites, recipeId]
+        };
+      }),
+
+      // History & Learning
+      logHistory: (entry) => set((state) => {
+        // Simple learning hook: Update user wood affinity if smoked
+        let newAffinity = { ...state.settings.woodAffinity };
+        if (entry.smoked && entry.rating && entry.rating >= 4) {
+          const wood = entry.smoked.wood;
+          newAffinity[wood] = (newAffinity[wood] || 0) + 1;
+        }
+
+        return {
+          history: [...state.history, { ...entry, id: uuidv4() }],
+          settings: { ...state.settings, woodAffinity: newAffinity }
+        };
+      }),
+
+      // Settings
       updateSettings: (updates) => set((state) => ({
-        userSettings: { ...state.userSettings, ...updates }
+        settings: { ...state.settings, ...updates }
       })),
 
-      loadDemoData: () => set((state) => ({
-        inventory: DEMO_INVENTORY,
-        userSettings: { ...state.userSettings, hasSmoker: true, enableCostTracking: true }
+      // System
+      loadSeedData: () => set((state) => ({
+        woodLibrary: SEED_WOODS,
+        recipes: SEED_RECIPES,
+        // Mock inventory for demo
+        inventory: [
+          { id: uuidv4(), name: 'Bourbon Whiskey', category: 'spirit', quantity: 1, tags: ['whiskey'], updatedAt: Date.now() },
+          { id: uuidv4(), name: 'Sweet Vermouth', category: 'liqueur', quantity: 1, tags: ['vermouth'], updatedAt: Date.now() },
+          { id: uuidv4(), name: 'Angostura Bitters', category: 'bitters', quantity: 1, tags: ['bitters'], updatedAt: Date.now() },
+          { id: uuidv4(), name: 'Campari', category: 'liqueur', quantity: 1, tags: ['amaro'], updatedAt: Date.now() },
+          { id: uuidv4(), name: 'Gin', category: 'spirit', quantity: 1, tags: ['gin'], updatedAt: Date.now() },
+        ],
+        settings: { ...state.settings, hasSmoker: true }
       })),
-
+      
       reset: () => set({
         inventory: [],
         woodLibrary: SEED_WOODS,
-        userSettings: { name: 'Guest', hasSmoker: false, preferredIntensity: 'medium', enableCostTracking: false }
+        people: [],
+        recipes: SEED_RECIPES,
+        favorites: [],
+        history: [],
+        settings: {
+          email: 'user@example.com',
+          hasSmoker: false,
+          defaultIntensity: 'medium',
+          enableCostTracking: false,
+          woodAffinity: {}
+        }
       })
     }),
     {
-      name: 'barbuddy-storage',
+      name: 'barbuddy-hybrid-store',
     }
   )
 );

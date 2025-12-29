@@ -1,0 +1,224 @@
+FULL HYBRID REBUILD REQUEST:
+Regenerate this project into “BarBuddy” using a HYBRID SYSTEM DESIGN:
+- Deterministic rules as guardrails (predictable, explainable, safe)
+- Learning/personalization as re-ranking and default-tuning (adaptive, per person, improves over time)
+You may delete/replace all existing code, schema, and UI. Mobile-first. Provide README with architecture + extension points.
+
+========================================
+0) HYBRID PRINCIPLES (MUST FOLLOW)
+========================================
+A) RULES ARE GUARDRAILS (never violated)
+- Smoked drink rules:
+  - smoke GLASS by default
+  - reduce bitters 30–50% when smoked
+  - max 3 total dashes bitters
+  - visible lingering smoke = too much
+  - 5–20s smoke time depending on wood intensity
+  - order: build → smoke → rest 20–30s → pour → garnish
+  - troubleshooting: too smoky→less time/lighter wood; too bitter→less bitters/less smoke; flat→citrus expression; too sweet→bitters/acid; hot/sharp→more dilution
+- Safety caps:
+  - Hickory ≤ 8s
+  - Mesquite ≤ 7s
+  - Oak ≤ 12s
+- Garnish-only botanicals (e.g., rosemary/cinnamon) cannot smoke glass or cocktail.
+
+B) LEARNING ONLY CHANGES RANKING + DEFAULTS (within guardrails)
+- Learning can change:
+  - which cocktails appear first
+  - which wood is default pick
+  - what intensity slider defaults to
+  - which tuning suggestions are most likely
+- Learning cannot break safety rules or caps.
+
+C) TRANSPARENCY
+Always show “Why” explanations for:
+- recommended cocktails
+- meal pairings
+- recommended woods/smoke settings
+- tuned recipe changes
+
+========================================
+1) AUTH + PER-USER DATA
+========================================
+Email/password auth. All data per-user: inventory, tools, smoker, wood profiles, cocktails, people profiles, favorites, notes, tuning variations, viewed/made history, learning weights, optional cost.
+
+========================================
+2) INVENTORY + SCANNING (BARCODE FIRST)
+========================================
+- Inventory item fields:
+  name, brand, category, subtype, ABV(optional), photo, notes,
+  quantity, bottleSizeMl, tags, createdAt/updatedAt.
+- Scan Bottle:
+  - barcode UPC/EAN primary (camera)
+  - OCR fallback: crop/confirm → OCR → cleanup → fuzzy match top 5 + confidence → confirm/edit → save
+- Learn-from-edits:
+  store per-user mappings (barcode or OCR signature → corrected item) to auto-fill next time.
+- Manual add always available.
+
+========================================
+3) TOOLS + SMOKER SETUP
+========================================
+Tools inventory including cocktail smoker.
+Smoker setup: hasSmoker, deviceName optional, preferredIntensity (light/medium/bold), notes.
+If hasSmoker=false, hide smoker UI and prompt enabling it.
+
+========================================
+4) WOOD PROFILE SYSTEM (BUILT-IN + USER-ADDED + ADAPTIVE)
+========================================
+A) Wood profile fields:
+name, intensity, timeMin/timeMax, purpose, tastingNotes,
+flavorTags (fruity/floral/nutty/toasty/savory/campfire/clean/spicy/etc),
+bestWithDrinkTags, bestWithFoodTags, avoidWithDrinkTags,
+beginnerSafe, isInMyKit, optional methodRestriction (garnishOnly).
+Allow user add/edit/delete custom woods; allow disabling any wood.
+
+B) Seed built-in woods (editable):
+Core: Alder, Apple, Cherry, Oak, Pecan, Hickory, Mesquite, Maple
+Fancy: Pear, Peach, Walnut, Olive, Beech, Grapevine
+Botanical garnish-only: Rosemary, Cinnamon
+Include realistic tags/affinities and time ranges. Enforce caps for strong woods.
+
+C) Adaptive wood scoring (works for ANY wood profiles):
+Score each wood for a context using:
+- meal tags match bestWithFoodTags
+- cocktail tags match bestWithDrinkTags
+- flavorTags alignment (dessert→toasty/sweet; bbq→campfire/savory; seafood→clean/light; wine-like→floral/clean/fruity)
+- penalties for avoidWithDrinkTags
+- adjust using person’s smoke tolerance and sweetness preference
+Return top 3 woods + explanation referencing matched tags.
+
+D) Learning:
+Maintain per-person “wood affinity” weights updated by:
+- ratings (“made again”, 1–5)
+- feedback chips (too smoky, too bitter, just right)
+- tuning actions (reduced smoke time, switched wood)
+Use it to re-rank woods in similar contexts.
+
+========================================
+5) COCKTAIL LIBRARY + AVAILABILITY
+========================================
+- Seed ~50 classic cocktails with metadata:
+baseSpirit, tags, sweetness/bitterness/acidity, smokyFlag, glassware, garnish, steps.
+- Search/filter.
+- Show “Make Now” and “Almost (≤2 missing)”.
+
+========================================
+6) CREATIVE COCKTAIL GENERATION (RULED + PERSONALIZED)
+========================================
+Generate 5–10 recipes from inventory with modes:
+classic / modern / tiki / smoky / low-ABV.
+Rules ensure sane ratios and steps.
+Personalization biases recipe style based on selected person’s preferences.
+Smoky mode integrates smoker if enabled: suggests woods + times + method.
+
+========================================
+7) MEAL ↔ DRINK PAIRING (RULES + LEARNING)
+========================================
+- Two-way pairing.
+- Rule-based scoring: contrast vs complement with explainability.
+- Learning re-ranking per person and per season context (hot vs cool).
+Smoker integration:
+- If grilled/bbq/char/rich and hasSmoker=true, boost smoked options and recommend top woods.
+Always show “Why this pairing works”.
+
+========================================
+8) SMOKER MODE v2 (RULED + PERSONALIZED)
+========================================
+- Intensity slider: Aroma → Balanced → Bold + optional preset buttons.
+- Default slider position can be learned per person.
+- Smoked controls: toggle, wood picker (default learned), method picker with guardrails.
+- Guided Smoker Mode with timers and steps.
+- Repeat last smoke settings button.
+- Post-taste quick fix buttons (too smoky/too bitter/flat) that:
+  - adjust next recommendations
+  - update learning weights
+  - never violate caps/rules
+
+========================================
+9) RECIPE TUNING (DETERMINISTIC CHANGES + LEARNING)
+========================================
+- “My Notes” + quick chips: too sweet, more spirit, more bitters, too smoky, etc.
+- “Adjust & Remake” generates a Variation (does not overwrite classics).
+- Show Before→After and reasoning.
+- Deterministic tuning rules:
+  too sweet→reduce sweetener 10–30%/add acid slightly; too sour→reduce citrus; want more spirit→adjust base/dilution; want more bitters→+1 dash (caps apply); too smoky→less time/lighter wood; flat→citrus expression.
+- Learning uses tuning history to bias future defaults per person.
+
+========================================
+10) FAVORITES LIBRARY (COLLECTIONS + PERSON-TARGETED)
+========================================
+- Top-level Favorites tab.
+- Save any drink (classic, generated, imported, tuned).
+- Collections/folders, tags, notes, pinning.
+- “Best for” person(s).
+- Optional preferred smoke settings per favorite.
+- Quick actions: make it, pair it, adjust & remake.
+
+========================================
+11) PEOPLE PROFILES + PREFERENCES TAB (PER PERSON LEARNING)
+========================================
+Profiles with tabs: Overview / Preferences / Favorites / History.
+Preferences builder includes:
+- sweetness preference (dry/balanced/sweet or slider)
+- preferred ABV range
+- style chips (wine-like, spritz, spirit-forward, citrus, herbal, smoky, bitter/amaro, dessert, low-ABV, tiki, refreshing)
+- dislikes chips
+- seasonal preference: hot→white-wine leaning; cool→red-wine leaning
+- wine fields: dry wine preference, wine ABV comfort (~13.5%+)
+“Who is this for?” selector appears in make flow, favorites, tuning, pairings.
+Maintain per-person taste weights updated from behavior.
+
+========================================
+12) IMPORT FROM URL TO FAVORITES (STRUCTURED + ATTRIBUTION)
+========================================
+- Paste a recipe URL → server fetch → extract structured recipe fields only (title/ingredients/steps/etc).
+- Confirm/edit screen before saving.
+- Store source name + URL; link “View original”.
+- Do not copy full page text.
+
+========================================
+13) OPTIONAL COST TRACKING (TOGGLE; OFF BY DEFAULT)
+========================================
+- Settings toggle enableCostTracking default false.
+- When OFF: hide all cost UI and never prompt for price.
+- When ON: bottle price+size+store; cost per drink; batch cost; optional receipt OCR.
+- Do not scrape retailer sites; allow pluggable licensed provider interface.
+
+========================================
+14) OPTIONAL EXAMPLE TEMPLATES (ONBOARDING HELP)
+========================================
+Offer one-tap add of optional example profiles:
+- Wine Lover (Warm Weather)
+- Wine Lover (Cool Weather)
+- Cocktail Enthusiast
+Optional example set:
+- Wife (Example) and Mother-in-law (Example) (dry; hot white-wine leaning; cool red-wine leaning; ABV comfort ~13.5%+ wine)
+Seed favorite example if chosen:
+- “Pomegranate Hugo Spritz” with source attribution link (Food Network URL)
+Associate to Wife/MIL example profiles.
+Templates are editable and deletable and do not affect recommendations unless used.
+
+========================================
+15) HOME UX
+========================================
+Home includes:
+- Scan Bottle
+- Add Ingredient
+- Generate Cocktail
+- Pair With Meal
+- Pair With Drink
+- Favorites
+- Guided Smoke (if smoker)
+- For You feed (with “Recommend for [Person]” selector)
+- Continue where I left off (recent viewed/made)
+
+========================================
+16) TECH REQUIREMENTS
+========================================
+Prefer Next.js + TypeScript + Prisma + Postgres (SQLite ok for MVP).
+Image upload works in Replit.
+OCR without paid APIs.
+README includes setup, schema overview, rule engine, learning engine, and how to extend wood profiles and providers.
+
+DELIVERABLE:
+A working BarBuddy full hybrid system: deterministic guardrails + adaptive learning, per person, explainable, with full smoker, tuning, favorites, import, and optional cost tracking.
