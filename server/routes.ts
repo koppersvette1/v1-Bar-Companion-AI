@@ -19,8 +19,10 @@ import {
 } from "@shared/schema";
 import { z } from "zod";
 
-function getUserId(req: Request): string | null {
-  return (req.user as any)?.claims?.sub || null;
+function getUserId(req: Request): string {
+  const userId = (req.user as any)?.claims?.sub;
+  if (!userId) throw new Error("User not authenticated");
+  return userId;
 }
 
 export async function registerRoutes(
@@ -65,6 +67,75 @@ export async function registerRoutes(
       res.json(garnishes);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch garnishes" });
+    }
+  });
+
+  // ====== MIGRATE GUEST DATA (After login) ======
+  app.post("/api/migrate-guest-data", isAuthenticated, async (req, res) => {
+    try {
+      const userId = getUserId(req);
+      if (!userId) {
+        res.status(401).json({ error: "Not authenticated" });
+        return;
+      }
+      
+      const { pendingFavorites, flights, recentDrinks, smokerSettings } = req.body;
+      
+      let favoritesCount = 0;
+      let flightsCount = 0;
+      let historyCount = 0;
+
+      if (pendingFavorites && Array.isArray(pendingFavorites)) {
+        for (const recipeId of pendingFavorites) {
+          try {
+            await storage.createFavorite({ userId, recipeId, notes: "Migrated from guest session" });
+            favoritesCount++;
+          } catch (e) {
+          }
+        }
+      }
+
+      if (flights && Array.isArray(flights)) {
+        for (const flight of flights) {
+          try {
+            await storage.createFlight({
+              userId,
+              name: flight.name || "Migrated Flight",
+              category: flight.category || "alcoholic",
+              theme: flight.theme || "",
+              recipeIds: flight.recipeIds || [],
+            });
+            flightsCount++;
+          } catch (e) {
+          }
+        }
+      }
+
+      if (recentDrinks && Array.isArray(recentDrinks)) {
+        for (const drink of recentDrinks) {
+          try {
+            await storage.createHistoryEntry({
+              userId,
+              recipeId: drink.recipeId,
+              recipeName: drink.recipeName,
+              smoked: drink.smoked ? { wood: drink.smoked.wood, time: drink.smoked.time, method: drink.smoked.method } : null,
+            });
+            historyCount++;
+          } catch (e) {
+          }
+        }
+      }
+
+      res.json({
+        success: true,
+        migratedCounts: {
+          favorites: favoritesCount,
+          flights: flightsCount,
+          history: historyCount,
+        },
+      });
+    } catch (error) {
+      res.status(500).json({ error: "Migration failed" });
     }
   });
 
