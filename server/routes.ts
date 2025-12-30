@@ -32,14 +32,54 @@ export async function registerRoutes(
   app: Express
 ): Promise<Server> {
 
-  // ====== HEALTH CHECK (PUBLIC) ======
+  // ====== COMPREHENSIVE HEALTH CHECK (PUBLIC) ======
   app.get("/api/health", async (req, res) => {
+    const startTime = Date.now();
+    const environment = process.env.NODE_ENV === "production" ? "production" : "development";
+    const version = process.env.COMMIT_SHA || process.env.BUILD_ID || process.env.REPL_ID || "dev";
+    
+    let dbOk = false;
+    let dbError: string | undefined;
+    
     try {
-      const result = await storage.healthCheck();
-      res.json({ status: "ok", database: result ? "connected" : "error", timestamp: new Date().toISOString() });
+      const result = await Promise.race([
+        storage.healthCheck(),
+        new Promise((_, reject) => setTimeout(() => reject(new Error("DB connection timeout (1.5s)")), 1500))
+      ]);
+      dbOk = Boolean(result);
     } catch (error) {
-      res.status(500).json({ status: "error", database: "disconnected", error: String(error) });
+      dbError = String(error);
     }
+    
+    const authConfigured = Boolean(
+      process.env.SESSION_SECRET && process.env.REPLIT_DOMAINS
+    );
+    
+    const storageConfigured = Boolean(
+      process.env.DATABASE_URL || 
+      (process.env.PGHOST && process.env.PGDATABASE && process.env.PGUSER)
+    );
+    
+    const overallOk = dbOk && authConfigured && storageConfigured;
+    const responseTime = Date.now() - startTime;
+    
+    res.json({
+      ok: overallOk,
+      timestamp: new Date().toISOString(),
+      environment,
+      version,
+      responseTimeMs: responseTime,
+      db: {
+        ok: dbOk,
+        ...(dbError && { error: dbError })
+      },
+      auth: {
+        configured: authConfigured
+      },
+      storage: {
+        configured: storageConfigured
+      }
+    });
   });
 
   // ====== PUBLIC RECIPES (Built-in classics for guests) ======

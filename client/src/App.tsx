@@ -22,6 +22,7 @@ import Pair from "@/pages/pair";
 import Education from "@/pages/education";
 import Flights from "@/pages/flights";
 import Generate from "@/pages/generate";
+import Diagnostics from "@/pages/diagnostics";
 
 function MigrationCheck() {
   const { user, isLoading } = useAuth();
@@ -65,6 +66,7 @@ function Router() {
         <Route path="/education" component={Education} />
         <Route path="/flights" component={Flights} />
         <Route path="/generate" component={Generate} />
+        <Route path="/diagnostics" component={Diagnostics} />
         <Route component={NotFound} />
       </Switch>
     </Layout>
