@@ -44,11 +44,15 @@ export async function registerRoutes(
     try {
       const result = await Promise.race([
         storage.healthCheck(),
-        new Promise((_, reject) => setTimeout(() => reject(new Error("DB connection timeout (1.5s)")), 1500))
-      ]);
-      dbOk = Boolean(result);
+        new Promise<boolean>((_, reject) => setTimeout(() => reject(new Error("DB connection timeout (1.5s)")), 1500))
+      ]) as boolean;
+      dbOk = result === true;
+      if (!dbOk) {
+        dbError = "Database query returned false";
+      }
     } catch (error) {
-      dbError = String(error);
+      dbOk = false;
+      dbError = error instanceof Error ? error.message : String(error);
     }
     
     const authConfigured = Boolean(
@@ -60,7 +64,7 @@ export async function registerRoutes(
       (process.env.PGHOST && process.env.PGDATABASE && process.env.PGUSER)
     );
     
-    const overallOk = dbOk && authConfigured && storageConfigured;
+    const overallOk = dbOk === true;
     const responseTime = Date.now() - startTime;
     
     res.json({
