@@ -67,10 +67,18 @@ export function useMigrateGuestData() {
       
       guestStore.clearAllData();
       
-      toast({
-        title: "Data migrated successfully!",
-        description: `Transferred ${result.migratedCounts?.favorites || 0} favorites, ${result.migratedCounts?.flights || 0} flights, and ${result.migratedCounts?.history || 0} history entries.`,
-      });
+      if (result.partialFailure) {
+        toast({
+          title: "Partial migration completed",
+          description: `Transferred ${result.migratedCounts?.favorites || 0} favorites, ${result.migratedCounts?.flights || 0} flights, and ${result.migratedCounts?.history || 0} history entries. Some items failed to import.`,
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Data migrated successfully!",
+          description: `Transferred ${result.migratedCounts?.favorites || 0} favorites, ${result.migratedCounts?.flights || 0} flights, and ${result.migratedCounts?.history || 0} history entries.`,
+        });
+      }
 
       return { success: true, migratedCounts: result.migratedCounts };
     } catch (error) {

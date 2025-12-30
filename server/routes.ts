@@ -74,68 +74,111 @@ export async function registerRoutes(
   app.post("/api/migrate-guest-data", isAuthenticated, async (req, res) => {
     try {
       const userId = getUserId(req);
-      if (!userId) {
-        res.status(401).json({ error: "Not authenticated" });
-        return;
-      }
       
-      const { pendingFavorites, flights, recentDrinks, smokerSettings } = req.body;
+      const { pendingFavorites, flights, recentDrinks } = req.body;
       
-      let favoritesCount = 0;
-      let flightsCount = 0;
-      let historyCount = 0;
+      const results = {
+        favorites: { success: 0, failed: 0, errors: [] as string[] },
+        flights: { success: 0, failed: 0, errors: [] as string[] },
+        history: { success: 0, failed: 0, errors: [] as string[] },
+      };
 
       if (pendingFavorites && Array.isArray(pendingFavorites)) {
         for (const recipeId of pendingFavorites) {
+          if (typeof recipeId !== 'string' || !recipeId) {
+            results.favorites.failed++;
+            results.favorites.errors.push("Invalid recipe ID");
+            continue;
+          }
           try {
             await storage.createFavorite({ userId, recipeId, notes: "Migrated from guest session" });
-            favoritesCount++;
-          } catch (e) {
+            results.favorites.success++;
+          } catch (e: any) {
+            results.favorites.failed++;
+            results.favorites.errors.push(e.message || "Unknown error");
           }
         }
       }
 
       if (flights && Array.isArray(flights)) {
         for (const flight of flights) {
+          if (!flight || typeof flight !== 'object') {
+            results.flights.failed++;
+            results.flights.errors.push("Invalid flight data");
+            continue;
+          }
           try {
             await storage.createFlight({
               userId,
-              name: flight.name || "Migrated Flight",
+              name: String(flight.name || "Migrated Flight"),
               category: flight.category || "alcoholic",
-              theme: flight.theme || "",
-              recipeIds: flight.recipeIds || [],
+              theme: String(flight.theme || ""),
+              recipeIds: Array.isArray(flight.recipeIds) ? flight.recipeIds : [],
             });
-            flightsCount++;
-          } catch (e) {
+            results.flights.success++;
+          } catch (e: any) {
+            results.flights.failed++;
+            results.flights.errors.push(e.message || "Unknown error");
           }
         }
       }
 
       if (recentDrinks && Array.isArray(recentDrinks)) {
         for (const drink of recentDrinks) {
+          if (!drink || typeof drink !== 'object' || !drink.recipeId || !drink.recipeName) {
+            results.history.failed++;
+            results.history.errors.push("Invalid drink data");
+            continue;
+          }
           try {
+            const smokedData = drink.smoked && typeof drink.smoked === 'object' 
+              ? { 
+                  wood: String(drink.smoked.wood || ''),
+                  time: Number(drink.smoked.time) || 0,
+                  method: String(drink.smoked.method || '')
+                }
+              : null;
+            
             await storage.createHistoryEntry({
               userId,
-              recipeId: drink.recipeId,
-              recipeName: drink.recipeName,
-              smoked: drink.smoked ? { wood: drink.smoked.wood, time: drink.smoked.time, method: drink.smoked.method } : null,
+              recipeId: String(drink.recipeId),
+              recipeName: String(drink.recipeName),
+              notes: `Migrated from guest session${drink.timestamp ? ` (originally made ${new Date(drink.timestamp).toLocaleDateString()})` : ''}`,
+              smoked: smokedData,
             });
-            historyCount++;
-          } catch (e) {
+            results.history.success++;
+          } catch (e: any) {
+            results.history.failed++;
+            results.history.errors.push(e.message || "Unknown error");
           }
         }
       }
 
+      const hasPartialFailure = results.favorites.failed > 0 || 
+                                 results.flights.failed > 0 || 
+                                 results.history.failed > 0;
+
       res.json({
-        success: true,
+        success: !hasPartialFailure || (results.favorites.success + results.flights.success + results.history.success) > 0,
+        partialFailure: hasPartialFailure,
         migratedCounts: {
-          favorites: favoritesCount,
-          flights: flightsCount,
-          history: historyCount,
+          favorites: results.favorites.success,
+          flights: results.flights.success,
+          history: results.history.success,
         },
+        failedCounts: {
+          favorites: results.favorites.failed,
+          flights: results.flights.failed,
+          history: results.history.failed,
+        },
+        errors: hasPartialFailure ? {
+          favorites: results.favorites.errors.slice(0, 3),
+          flights: results.flights.errors.slice(0, 3),
+          history: results.history.errors.slice(0, 3),
+        } : undefined,
       });
-    } catch (error) {
-      res.status(500).json({ error: "Migration failed" });
+    } catch (error: any) {
+      res.status(500).json({ error: "Migration failed", message: error.message || "Unknown error" });
     }
   });
 
