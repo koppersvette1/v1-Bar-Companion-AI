@@ -1,21 +1,38 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState, useCallback } from "react";
-import type { User } from "@shared/models/auth";
 
-async function fetchUser(): Promise<User | null> {
-  const response = await fetch("/api/auth/user", {
-    credentials: "include",
-  });
+interface SessionUser {
+  id: string;
+  name: string | null;
+  email: string | null;
+  isAdmin: boolean;
+}
 
-  if (response.status === 401) {
-    return null;
+interface SessionResponse {
+  authenticated: boolean;
+  user: SessionUser | null;
+}
+
+async function fetchSession(): Promise<SessionResponse> {
+  try {
+    const response = await fetch("/api/auth/session", {
+      credentials: "include",
+      headers: { "Accept": "application/json" },
+    });
+
+    if (!response.ok) {
+      return { authenticated: false, user: null };
+    }
+
+    const contentType = response.headers.get("content-type");
+    if (!contentType?.includes("application/json")) {
+      return { authenticated: false, user: null };
+    }
+
+    return response.json();
+  } catch {
+    return { authenticated: false, user: null };
   }
-
-  if (!response.ok) {
-    throw new Error(`${response.status}: ${response.statusText}`);
-  }
-
-  return response.json();
 }
 
 async function logout(): Promise<void> {
@@ -43,10 +60,10 @@ export function useAuth() {
   const queryClient = useQueryClient();
   const [hasCheckedOnce, setHasCheckedOnce] = useState(false);
   
-  const { data: user, isLoading, refetch } = useQuery<User | null>({
-    queryKey: ["/api/auth/user"],
+  const { data: session, isLoading, refetch } = useQuery<SessionResponse>({
+    queryKey: ["/api/auth/session"],
     queryFn: async () => {
-      const result = await fetchUser();
+      const result = await fetchSession();
       markAuthChecked();
       setHasCheckedOnce(true);
       return result;
@@ -71,14 +88,14 @@ export function useAuth() {
     mutationFn: logout,
     onSuccess: () => {
       localStorage.removeItem(SESSION_CHECK_KEY);
-      queryClient.setQueryData(["/api/auth/user"], null);
+      queryClient.setQueryData(["/api/auth/session"], { authenticated: false, user: null });
     },
   });
 
   return {
-    user: user ?? null,
+    user: session?.user ?? null,
     isLoading: isLoading && !hasCheckedOnce,
-    isAuthenticated: !!user,
+    isAuthenticated: session?.authenticated ?? false,
     logout: logoutMutation.mutate,
     isLoggingOut: logoutMutation.isPending,
     checkAuth,
