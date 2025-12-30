@@ -110,7 +110,8 @@ export function rankRecipesForPerson(
     }
 
     // 3. Explicit Likes (Tags)
-    const liked = recipe.tags.filter(t => person.likedTags.includes(t));
+    const personLikedTags = person.likedTags || [];
+    const liked = recipe.tags.filter(t => personLikedTags.includes(t));
     if (liked.length > 0) {
       const val = liked.length * WEIGHTS.TAG_LIKE;
       score += val;
@@ -118,7 +119,8 @@ export function rankRecipesForPerson(
     }
 
     // 4. Explicit Dislikes (Tags)
-    const disliked = recipe.tags.filter(t => person.dislikedTags.includes(t));
+    const personDislikedTags = person.dislikedTags || [];
+    const disliked = recipe.tags.filter(t => personDislikedTags.includes(t));
     if (disliked.length > 0) {
       const val = disliked.length * Math.abs(WEIGHTS.TAG_DISLIKE); // Penalty is negative
       score += WEIGHTS.TAG_DISLIKE * disliked.length;
