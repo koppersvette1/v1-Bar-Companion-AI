@@ -1,7 +1,71 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import type { PersonProfile, InventoryItem, HistoryEntry, UserSettings, Recipe } from './store';
+import type { BatchGenerationResult, BatchGenerationParams } from '@shared/generation-types';
 
 const API_BASE = '/api';
+
+export class GenerationError extends Error {
+  endpoint: string;
+  status: number;
+  responseText: string;
+  
+  constructor(endpoint: string, status: number, responseText: string) {
+    super(`Generation failed: ${status} from ${endpoint}`);
+    this.name = 'GenerationError';
+    this.endpoint = endpoint;
+    this.status = status;
+    this.responseText = responseText.slice(0, 200);
+  }
+}
+
+export async function generateBatch(params: BatchGenerationParams): Promise<BatchGenerationResult> {
+  const endpoint = `${API_BASE}/generation/batch`;
+  
+  try {
+    const response = await fetch(endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(params),
+    });
+    
+    const responseText = await response.text();
+    
+    if (import.meta.env.DEV) {
+      console.log('[Generation API] Response:', { 
+        status: response.status, 
+        ok: response.ok,
+        text: responseText.slice(0, 500) 
+      });
+    }
+    
+    if (!response.ok) {
+      throw new GenerationError(endpoint, response.status, responseText);
+    }
+    
+    let result: BatchGenerationResult;
+    try {
+      result = JSON.parse(responseText);
+    } catch {
+      throw new GenerationError(endpoint, response.status, `Invalid JSON: ${responseText}`);
+    }
+    
+    if (import.meta.env.DEV) {
+      console.log('[Generation API] Parsed result:', {
+        alcoholic: result.alcoholic?.length ?? 0,
+        mocktailsNA: result.mocktailsNA?.length ?? 0,
+        kidMocktailsNA: result.kidMocktailsNA?.length ?? 0,
+        validationPassed: result.validationPassed,
+      });
+    }
+    
+    return result;
+  } catch (error) {
+    if (error instanceof GenerationError) {
+      throw error;
+    }
+    throw new GenerationError(endpoint, 0, error instanceof Error ? error.message : String(error));
+  }
+}
 
 // ====== PEOPLE ======
 export function usePeople() {

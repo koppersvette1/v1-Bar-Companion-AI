@@ -6,26 +6,10 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Loader2, Sparkles, Wine, Coffee, Flame, AlertTriangle, ChevronDown, ChevronUp } from "lucide-react";
+import { Loader2, Sparkles, Wine, Coffee, Flame, AlertTriangle, ChevronDown, ChevronUp, Baby } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { generateBatch, GenerationError } from "@/lib/api";
 import type { BatchGenerationResult, GeneratedDrink } from "@shared/generation-types";
-
-async function generateDrinks(params: {
-  includeKidFriendly: boolean;
-  allowCaffeineInKidMocktails: boolean;
-  allowSpicyInKidMocktails: boolean;
-}): Promise<BatchGenerationResult> {
-  const response = await fetch("/api/generation/batch", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(params),
-  });
-  
-  if (!response.ok) {
-    throw new Error("Failed to generate drinks");
-  }
-  
-  return response.json();
-}
 
 function DrinkCard({ drink }: { drink: GeneratedDrink }) {
   const [expanded, setExpanded] = useState(false);
@@ -69,7 +53,7 @@ function DrinkCard({ drink }: { drink: GeneratedDrink }) {
           <Button 
             variant="ghost" 
             size="sm" 
-            onClick={() => setExpanded(!expanded)}
+            onClick={(e) => { e.stopPropagation(); setExpanded(!expanded); }}
             className="text-slate-400 hover:text-white w-full justify-between"
             data-testid={`button-expand-${drink.id}`}
           >
@@ -139,7 +123,7 @@ function DrinkSection({
   const countValid = drinks.length >= expectedMin && drinks.length <= expectedMax;
   
   return (
-    <section className="space-y-4">
+    <section className="space-y-4" data-testid={`section-${title.toLowerCase().replace(/\s+/g, '-')}`}>
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-serif text-white flex items-center gap-2">
           <Icon className="h-5 w-5 text-orange-500" />
@@ -155,25 +139,67 @@ function DrinkSection({
           {drinks.length} / {expectedMin}-{expectedMax}
         </Badge>
       </div>
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {drinks.map(drink => (
-          <DrinkCard key={drink.id} drink={drink} />
-        ))}
-      </div>
+      {drinks.length === 0 ? (
+        <Card className="bg-slate-800/30 border-slate-700">
+          <CardContent className="py-8 text-center">
+            <p className="text-slate-500">No drinks in this category</p>
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {drinks.map(drink => (
+            <DrinkCard key={drink.id} drink={drink} />
+          ))}
+        </div>
+      )}
     </section>
   );
 }
 
 export default function Generate() {
+  const { toast } = useToast();
   const [includeKidFriendly, setIncludeKidFriendly] = useState(false);
   const [allowCaffeine, setAllowCaffeine] = useState(false);
   const [allowSpicy, setAllowSpicy] = useState(false);
 
   const generateMutation = useMutation({
-    mutationFn: generateDrinks,
+    mutationFn: generateBatch,
+    onError: (error: Error) => {
+      if (error instanceof GenerationError) {
+        toast({
+          variant: "destructive",
+          title: `Generation Failed (${error.status})`,
+          description: `${error.endpoint}: ${error.responseText}`,
+        });
+        if (import.meta.env.DEV) {
+          console.error('[Generation Error]', {
+            endpoint: error.endpoint,
+            status: error.status,
+            responseText: error.responseText,
+          });
+        }
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Generation Failed",
+          description: error.message,
+        });
+      }
+    },
+    onSuccess: (data) => {
+      if (import.meta.env.DEV) {
+        console.log('[Generation Success]', data);
+      }
+      toast({
+        title: "Drinks Generated!",
+        description: `${data.alcoholic.length} cocktails, ${data.mocktailsNA.length} mocktails${data.kidMocktailsNA ? `, ${data.kidMocktailsNA.length} kid-friendly` : ''}`,
+      });
+    },
   });
 
   const handleGenerate = () => {
+    if (generateMutation.isPending) return;
+    
     generateMutation.mutate({
       includeKidFriendly,
       allowCaffeineInKidMocktails: allowCaffeine,
@@ -209,6 +235,7 @@ export default function Generate() {
               id="kid-friendly" 
               checked={includeKidFriendly} 
               onCheckedChange={setIncludeKidFriendly}
+              disabled={generateMutation.isPending}
               data-testid="switch-kid-friendly"
             />
           </div>
@@ -229,6 +256,7 @@ export default function Generate() {
                     id="allow-caffeine" 
                     checked={allowCaffeine} 
                     onCheckedChange={setAllowCaffeine}
+                    disabled={generateMutation.isPending}
                     data-testid="switch-allow-caffeine"
                   />
                 </div>
@@ -245,6 +273,7 @@ export default function Generate() {
                     id="allow-spicy" 
                     checked={allowSpicy} 
                     onCheckedChange={setAllowSpicy}
+                    disabled={generateMutation.isPending}
                     data-testid="switch-allow-spicy"
                   />
                 </div>
@@ -255,7 +284,7 @@ export default function Generate() {
           <Button 
             onClick={handleGenerate}
             disabled={generateMutation.isPending}
-            className="w-full bg-orange-500 hover:bg-orange-600 text-white"
+            className="w-full bg-orange-500 hover:bg-orange-600 text-white disabled:opacity-50 disabled:cursor-not-allowed"
             data-testid="button-generate"
           >
             {generateMutation.isPending ? (
@@ -278,7 +307,10 @@ export default function Generate() {
           <CardContent className="py-4">
             <p className="text-red-400 flex items-center gap-2">
               <AlertTriangle className="h-5 w-5" />
-              Failed to generate drinks. Please try again.
+              {generateMutation.error instanceof GenerationError 
+                ? `${generateMutation.error.endpoint} returned ${generateMutation.error.status}: ${generateMutation.error.responseText}`
+                : generateMutation.error.message
+              }
             </p>
           </CardContent>
         </Card>
@@ -304,7 +336,7 @@ export default function Generate() {
           
           <DrinkSection 
             title="Cocktails" 
-            drinks={result.alcoholic} 
+            drinks={result.alcoholic || []} 
             icon={Wine}
             expectedMin={5}
             expectedMax={6}
@@ -313,22 +345,22 @@ export default function Generate() {
           <Separator className="bg-slate-800" />
           
           <DrinkSection 
-            title="Mocktails (NA)" 
-            drinks={result.mocktailsNA} 
+            title="Mocktails NA" 
+            drinks={result.mocktailsNA || []} 
             icon={Sparkles}
             badge={<Badge className="ml-2 bg-green-600/20 text-green-400 border-green-600/30">Non-Alcoholic</Badge>}
             expectedMin={3}
             expectedMax={4}
           />
           
-          {result.kidMocktailsNA && result.kidMocktailsNA.length > 0 && (
+          {(result.kidMocktailsNA && result.kidMocktailsNA.length > 0) && (
             <>
               <Separator className="bg-slate-800" />
               
               <DrinkSection 
-                title="Kid-Friendly Mocktails (NA)" 
+                title="Kid-Friendly Mocktails" 
                 drinks={result.kidMocktailsNA} 
-                icon={Sparkles}
+                icon={Baby}
                 badge={<Badge className="ml-2 bg-blue-600/20 text-blue-400 border-blue-600/30">Kid-Safe</Badge>}
                 expectedMin={2}
                 expectedMax={3}
