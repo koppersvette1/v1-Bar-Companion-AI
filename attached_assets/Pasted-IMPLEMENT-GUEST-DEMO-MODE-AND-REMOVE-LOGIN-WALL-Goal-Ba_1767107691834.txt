@@ -1,0 +1,77 @@
+IMPLEMENT GUEST / DEMO MODE AND REMOVE LOGIN WALL
+
+Goal:
+BarBuddy must load and be usable without signing in. Login is only required when a user wants to save data permanently. Keep all existing features; only change routing/auth gating and add guest persistence + upgrade prompts.
+
+1) PUBLIC ROUTES (NO AUTH REQUIRED)
+Make these pages fully public and viewable without a session:
+- / (Home)
+- /classics (Core Classics Library)
+- /education (all education pages)
+- /generate (drink generator page if separate)
+- /flights (flight builder) + /flights/[id]/placemat (placemat view)
+- /smoker (smoker guidance page if separate)
+Ensure no automatic redirect to /login occurs for these routes.
+
+2) PRIVATE ROUTES (AUTH REQUIRED)
+Require login for actions that persist server-side per-user:
+- Create/edit inventory items
+- Save favorites / collections
+- Create/edit People profiles
+- Save tuned variations as permanent
+- Save made history permanently
+- Upload images to a user account
+If a guest attempts these actions, do not navigate away; show an upgrade modal.
+
+3) GUEST SESSION STORAGE
+Add a lightweight “guest session” state stored in localStorage (or IndexedDB if already used) that includes:
+- generated drink results (last 50)
+- recent viewed drinks
+- flight creations + flight ratings + winner selection
+- smoker settings (smokerType, intensity default, last used wood/time/method)
+- garnish selections during a session
+- temporary “people” selection (guest-only; not persisted as profiles)
+This guest state should load instantly on app start, without checking auth.
+
+4) UPGRADE PROMPT (SOFT GATE)
+When a guest clicks Save (favorite/person/inventory/etc.), show modal:
+Title: “Save this to your BarBuddy?”
+Body: “Create a free account to save favorites, people profiles, your bar inventory, and your history.”
+Buttons:
+- “Create account” (primary)
+- “Sign in”
+- “Continue as guest” (secondary)
+Do not lose the user’s progress when modal opens/closes.
+
+5) MIGRATE GUEST DATA AFTER LOGIN
+After successful login/signup:
+- Offer “Import my guest session” (default ON).
+- Migrate:
+  - favorites created as guest (if any)
+  - flight history + placemat results
+  - recent viewed/made
+  - smoker settings defaults
+If migration fails, show a clear error and keep guest data locally.
+
+6) AUTH UX
+- Add “Sign in” button in the header.
+- If user is signed in, show profile/avatar menu.
+- Remove /login as the forced landing page.
+- Ensure deep links to public pages never redirect to /login.
+
+7) SAFARI COMPATIBILITY IMPROVEMENTS
+- Do not run auth-required API calls on initial public page load.
+- Any authenticated fetch should only happen if session exists.
+- Add user-friendly error toasts for failed API calls (status code + endpoint in dev).
+
+8) QA CHECKLIST (ADD A DEV DIAGNOSTICS PAGE)
+Add /diagnostics (dev/admin only) that runs API checks and shows results:
+- /api/health (db connectivity)
+- /api/auth/session
+- /api/generate (public should work if designed so)
+- /api/flights (guest local vs logged-in server)
+Show status codes + response JSON.
+Do not print secrets.
+
+Deliverable:
+BarBuddy opens directly without login, public features work for guests, saving prompts account creation, and guest state migrates after login.

@@ -19,14 +19,54 @@ import {
 } from "@shared/schema";
 import { z } from "zod";
 
-function getUserId(req: Request): string {
-  return (req.user as any)?.claims?.sub;
+function getUserId(req: Request): string | null {
+  return (req.user as any)?.claims?.sub || null;
 }
 
 export async function registerRoutes(
   httpServer: Server,
   app: Express
 ): Promise<Server> {
+
+  // ====== HEALTH CHECK (PUBLIC) ======
+  app.get("/api/health", async (req, res) => {
+    try {
+      const result = await storage.healthCheck();
+      res.json({ status: "ok", database: result ? "connected" : "error", timestamp: new Date().toISOString() });
+    } catch (error) {
+      res.status(500).json({ status: "error", database: "disconnected", error: String(error) });
+    }
+  });
+
+  // ====== PUBLIC RECIPES (Built-in classics for guests) ======
+  app.get("/api/public/recipes", async (req, res) => {
+    try {
+      const recipes = await storage.getBuiltInRecipes();
+      res.json(recipes);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch recipes" });
+    }
+  });
+
+  // ====== PUBLIC WOODS (For education/smoker pages) ======
+  app.get("/api/public/woods", async (req, res) => {
+    try {
+      const woods = await storage.getBuiltInWoods();
+      res.json(woods);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch woods" });
+    }
+  });
+
+  // ====== PUBLIC GARNISHES (For education pages) ======
+  app.get("/api/public/garnishes", async (req, res) => {
+    try {
+      const garnishes = await storage.getBuiltInGarnishes();
+      res.json(garnishes);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch garnishes" });
+    }
+  });
 
   // ====== PEOPLE PROFILES ======
   app.get("/api/people", isAuthenticated, async (req, res) => {

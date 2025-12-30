@@ -46,7 +46,7 @@ import {
   type InsertUserSettings,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, desc } from "drizzle-orm";
+import { eq, and, desc, sql } from "drizzle-orm";
 
 export interface IStorage {
   // People
@@ -133,6 +133,12 @@ export interface IStorage {
 
   // Seed data
   seedUserData(userId: string): Promise<void>;
+
+  // Public data (for guests)
+  healthCheck(): Promise<boolean>;
+  getBuiltInRecipes(): Promise<Recipe[]>;
+  getBuiltInWoods(): Promise<Wood[]>;
+  getBuiltInGarnishes(): Promise<Garnish[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -504,6 +510,28 @@ export class DatabaseStorage implements IStorage {
     for (const tool of seedTools) {
       await this.createTool({ ...tool, userId });
     }
+  }
+
+  // ====== PUBLIC DATA (FOR GUESTS) ======
+  async healthCheck(): Promise<boolean> {
+    try {
+      await db.execute(sql`SELECT 1`);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  async getBuiltInRecipes(): Promise<Recipe[]> {
+    return db.select().from(recipes).where(eq(recipes.isBuiltIn, true));
+  }
+
+  async getBuiltInWoods(): Promise<Wood[]> {
+    return db.select().from(woods).where(eq(woods.isBuiltIn, true));
+  }
+
+  async getBuiltInGarnishes(): Promise<Garnish[]> {
+    return db.select().from(garnishes).where(eq(garnishes.isBuiltIn, true));
   }
 }
 
