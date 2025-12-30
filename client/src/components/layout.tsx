@@ -1,16 +1,19 @@
 import { Link, useLocation } from "wouter";
-import { Home, Library, Martini, Flame, Users, BookHeart, Settings, GraduationCap } from "lucide-react";
+import { Home, Library, Martini, Flame, Users, BookHeart, Settings, GraduationCap, Beaker, LogOut } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/hooks/use-auth";
+import { Button } from "@/components/ui/button";
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   const [location] = useLocation();
+  const { user, logout } = useAuth();
 
   const navItems = [
     { href: "/", icon: Home, label: "Home" },
     { href: "/inventory", icon: Library, label: "My Bar" },
     { href: "/cocktails", icon: Martini, label: "Drinks" },
     { href: "/smoker", icon: Flame, label: "Smoker" },
-    { href: "/education", icon: GraduationCap, label: "Learn" },
+    { href: "/flights", icon: Beaker, label: "Flights" },
   ];
 
   return (
@@ -84,6 +87,18 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               Favorites
             </Link>
             <Link 
+              href="/education"
+              className={cn(
+                "flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 group font-medium text-sm",
+                location === "/education" 
+                  ? "bg-orange-500/10 text-orange-500" 
+                  : "text-slate-400 hover:text-slate-100 hover:bg-slate-900"
+              )}
+            >
+              <GraduationCap className="w-4 h-4 text-slate-500 group-hover:text-slate-300" />
+              Education
+            </Link>
+            <Link 
               href="/settings"
               className={cn(
                 "flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 group font-medium text-sm",
@@ -96,6 +111,23 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               Settings
             </Link>
           </nav>
+          
+          {user && (
+            <div className="mt-auto pt-4 border-t border-slate-800">
+              <div className="px-4 py-2 text-sm text-slate-400">
+                {user.email || user.firstName}
+              </div>
+              <Button
+                variant="ghost"
+                className="w-full justify-start gap-3 px-4 py-3 text-slate-400 hover:text-red-400 hover:bg-slate-900"
+                onClick={() => logout()}
+                data-testid="button-logout"
+              >
+                <LogOut className="w-4 h-4" />
+                Log Out
+              </Button>
+            </div>
+          )}
         </aside>
 
         {/* Main Content */}

@@ -1,34 +1,48 @@
-import type { Express } from "express";
+import type { Express, Request } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
+import { isAuthenticated } from "./replit_integrations/auth";
 import {
   insertPersonSchema,
   insertInventorySchema,
   insertHistorySchema,
   insertFavoriteSchema,
-  insertSettingsSchema,
   insertRecipeSchema,
+  insertWoodSchema,
+  insertGarnishSchema,
+  insertToolSchema,
+  insertCollectionSchema,
+  insertFlightSchema,
+  insertFlightResultSchema,
+  insertPairingSchema,
+  insertVariationSchema,
 } from "@shared/schema";
 import { z } from "zod";
+
+function getUserId(req: Request): string {
+  return (req.user as any)?.claims?.sub;
+}
 
 export async function registerRoutes(
   httpServer: Server,
   app: Express
 ): Promise<Server> {
-  
+
   // ====== PEOPLE PROFILES ======
-  app.get("/api/people", async (req, res) => {
+  app.get("/api/people", isAuthenticated, async (req, res) => {
     try {
-      const people = await storage.getPeople();
+      const userId = getUserId(req);
+      const people = await storage.getPeople(userId);
       res.json(people);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch people" });
     }
   });
 
-  app.post("/api/people", async (req, res) => {
+  app.post("/api/people", isAuthenticated, async (req, res) => {
     try {
-      const data = insertPersonSchema.parse(req.body);
+      const userId = getUserId(req);
+      const data = insertPersonSchema.parse({ ...req.body, userId });
       const person = await storage.createPerson(data);
       res.json(person);
     } catch (error) {
@@ -40,9 +54,10 @@ export async function registerRoutes(
     }
   });
 
-  app.patch("/api/people/:id", async (req, res) => {
+  app.patch("/api/people/:id", isAuthenticated, async (req, res) => {
     try {
-      const person = await storage.updatePerson(req.params.id, req.body);
+      const userId = getUserId(req);
+      const person = await storage.updatePerson(userId, req.params.id, req.body);
       if (!person) {
         res.status(404).json({ error: "Person not found" });
       } else {
@@ -53,9 +68,10 @@ export async function registerRoutes(
     }
   });
 
-  app.delete("/api/people/:id", async (req, res) => {
+  app.delete("/api/people/:id", isAuthenticated, async (req, res) => {
     try {
-      await storage.deletePerson(req.params.id);
+      const userId = getUserId(req);
+      await storage.deletePerson(userId, req.params.id);
       res.json({ success: true });
     } catch (error) {
       res.status(500).json({ error: "Failed to delete person" });
@@ -63,18 +79,20 @@ export async function registerRoutes(
   });
 
   // ====== INVENTORY ======
-  app.get("/api/inventory", async (req, res) => {
+  app.get("/api/inventory", isAuthenticated, async (req, res) => {
     try {
-      const items = await storage.getInventory();
+      const userId = getUserId(req);
+      const items = await storage.getInventory(userId);
       res.json(items);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch inventory" });
     }
   });
 
-  app.post("/api/inventory", async (req, res) => {
+  app.post("/api/inventory", isAuthenticated, async (req, res) => {
     try {
-      const data = insertInventorySchema.parse(req.body);
+      const userId = getUserId(req);
+      const data = insertInventorySchema.parse({ ...req.body, userId });
       const item = await storage.createInventoryItem(data);
       res.json(item);
     } catch (error) {
@@ -86,9 +104,10 @@ export async function registerRoutes(
     }
   });
 
-  app.patch("/api/inventory/:id", async (req, res) => {
+  app.patch("/api/inventory/:id", isAuthenticated, async (req, res) => {
     try {
-      const item = await storage.updateInventoryItem(req.params.id, req.body);
+      const userId = getUserId(req);
+      const item = await storage.updateInventoryItem(userId, req.params.id, req.body);
       if (!item) {
         res.status(404).json({ error: "Inventory item not found" });
       } else {
@@ -99,141 +118,131 @@ export async function registerRoutes(
     }
   });
 
-  app.delete("/api/inventory/:id", async (req, res) => {
+  app.delete("/api/inventory/:id", isAuthenticated, async (req, res) => {
     try {
-      await storage.deleteInventoryItem(req.params.id);
+      const userId = getUserId(req);
+      await storage.deleteInventoryItem(userId, req.params.id);
       res.json({ success: true });
     } catch (error) {
       res.status(500).json({ error: "Failed to delete inventory item" });
     }
   });
 
-  // ====== HISTORY ======
-  app.get("/api/history", async (req, res) => {
+  // ====== WOODS ======
+  app.get("/api/woods", isAuthenticated, async (req, res) => {
     try {
-      const entries = await storage.getHistory();
-      res.json(entries);
+      const userId = getUserId(req);
+      const woods = await storage.getWoods(userId);
+      res.json(woods);
     } catch (error) {
-      res.status(500).json({ error: "Failed to fetch history" });
+      res.status(500).json({ error: "Failed to fetch woods" });
     }
   });
 
-  app.post("/api/history", async (req, res) => {
+  app.post("/api/woods", isAuthenticated, async (req, res) => {
     try {
-      const data = insertHistorySchema.parse(req.body);
-      const entry = await storage.createHistoryEntry(data);
-      res.json(entry);
+      const userId = getUserId(req);
+      const data = insertWoodSchema.parse({ ...req.body, userId });
+      const wood = await storage.createWood(data);
+      res.json(wood);
     } catch (error) {
       if (error instanceof z.ZodError) {
         res.status(400).json({ error: error.errors });
       } else {
-        res.status(500).json({ error: "Failed to create history entry" });
+        res.status(500).json({ error: "Failed to create wood" });
       }
     }
   });
 
-  // ====== FAVORITES ======
-  app.get("/api/favorites", async (req, res) => {
+  app.patch("/api/woods/:id", isAuthenticated, async (req, res) => {
     try {
-      const favorites = await storage.getFavorites();
-      res.json(favorites);
-    } catch (error) {
-      res.status(500).json({ error: "Failed to fetch favorites" });
-    }
-  });
-
-  app.post("/api/favorites", async (req, res) => {
-    try {
-      const { recipeId } = req.body;
-      if (!recipeId) {
-        res.status(400).json({ error: "recipeId is required" });
-        return;
+      const userId = getUserId(req);
+      const wood = await storage.updateWood(userId, req.params.id, req.body);
+      if (!wood) {
+        res.status(404).json({ error: "Wood not found" });
+      } else {
+        res.json(wood);
       }
-      const favorite = await storage.addFavorite(recipeId);
-      res.json(favorite);
     } catch (error) {
-      res.status(500).json({ error: "Failed to add favorite" });
+      res.status(500).json({ error: "Failed to update wood" });
     }
   });
 
-  app.delete("/api/favorites/:recipeId", async (req, res) => {
+  app.delete("/api/woods/:id", isAuthenticated, async (req, res) => {
     try {
-      await storage.removeFavorite(req.params.recipeId);
+      const userId = getUserId(req);
+      await storage.deleteWood(userId, req.params.id);
       res.json({ success: true });
     } catch (error) {
-      res.status(500).json({ error: "Failed to remove favorite" });
+      res.status(500).json({ error: "Failed to delete wood" });
     }
   });
 
-  // ====== WOOD KIT ======
-  app.get("/api/wood-kit", async (req, res) => {
+  // ====== GARNISHES ======
+  app.get("/api/garnishes", isAuthenticated, async (req, res) => {
     try {
-      const kit = await storage.getWoodKit();
-      res.json(kit);
+      const userId = getUserId(req);
+      const garnishes = await storage.getGarnishes(userId);
+      res.json(garnishes);
     } catch (error) {
-      res.status(500).json({ error: "Failed to fetch wood kit" });
+      res.status(500).json({ error: "Failed to fetch garnishes" });
     }
   });
 
-  app.post("/api/wood-kit", async (req, res) => {
+  app.post("/api/garnishes", isAuthenticated, async (req, res) => {
     try {
-      const { woodId, isInKit } = req.body;
-      if (!woodId || typeof isInKit !== 'boolean') {
-        res.status(400).json({ error: "woodId and isInKit are required" });
-        return;
-      }
-      const kit = await storage.updateWoodKit(woodId, isInKit);
-      res.json(kit);
+      const userId = getUserId(req);
+      const data = insertGarnishSchema.parse({ ...req.body, userId });
+      const garnish = await storage.createGarnish(data);
+      res.json(garnish);
     } catch (error) {
-      res.status(500).json({ error: "Failed to update wood kit" });
-    }
-  });
-
-  // ====== SETTINGS ======
-  app.get("/api/settings", async (req, res) => {
-    try {
-      const settings = await storage.getSettings();
-      if (!settings) {
-        // Create default settings if none exist
-        const defaultSettings = await storage.updateSettings({
-          email: 'user@example.com',
-          hasSmoker: false,
-          defaultIntensity: 'medium',
-          enableCostTracking: false,
-          debugMode: false,
-          woodAffinity: {},
-        });
-        res.json(defaultSettings);
+      if (error instanceof z.ZodError) {
+        res.status(400).json({ error: error.errors });
       } else {
-        res.json(settings);
+        res.status(500).json({ error: "Failed to create garnish" });
+      }
+    }
+  });
+
+  app.patch("/api/garnishes/:id", isAuthenticated, async (req, res) => {
+    try {
+      const userId = getUserId(req);
+      const garnish = await storage.updateGarnish(userId, req.params.id, req.body);
+      if (!garnish) {
+        res.status(404).json({ error: "Garnish not found" });
+      } else {
+        res.json(garnish);
       }
     } catch (error) {
-      res.status(500).json({ error: "Failed to fetch settings" });
+      res.status(500).json({ error: "Failed to update garnish" });
     }
   });
 
-  app.patch("/api/settings", async (req, res) => {
+  app.delete("/api/garnishes/:id", isAuthenticated, async (req, res) => {
     try {
-      const settings = await storage.updateSettings(req.body);
-      res.json(settings);
+      const userId = getUserId(req);
+      await storage.deleteGarnish(userId, req.params.id);
+      res.json({ success: true });
     } catch (error) {
-      res.status(500).json({ error: "Failed to update settings" });
+      res.status(500).json({ error: "Failed to delete garnish" });
     }
   });
 
-  // ====== CUSTOM RECIPES ======
-  app.get("/api/recipes", async (req, res) => {
+  // ====== RECIPES ======
+  app.get("/api/recipes", isAuthenticated, async (req, res) => {
     try {
-      const recipes = await storage.getRecipes();
+      const userId = getUserId(req);
+      const recipes = await storage.getRecipes(userId);
       res.json(recipes);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch recipes" });
     }
   });
 
-  app.post("/api/recipes", async (req, res) => {
+  app.post("/api/recipes", isAuthenticated, async (req, res) => {
     try {
-      const data = insertRecipeSchema.parse(req.body);
+      const userId = getUserId(req);
+      const data = insertRecipeSchema.parse({ ...req.body, userId });
       const recipe = await storage.createRecipe(data);
       res.json(recipe);
     } catch (error) {
@@ -245,12 +254,381 @@ export async function registerRoutes(
     }
   });
 
-  app.delete("/api/recipes/:id", async (req, res) => {
+  app.patch("/api/recipes/:id", isAuthenticated, async (req, res) => {
     try {
-      await storage.deleteRecipe(req.params.id);
+      const userId = getUserId(req);
+      const recipe = await storage.updateRecipe(userId, req.params.id, req.body);
+      if (!recipe) {
+        res.status(404).json({ error: "Recipe not found" });
+      } else {
+        res.json(recipe);
+      }
+    } catch (error) {
+      res.status(500).json({ error: "Failed to update recipe" });
+    }
+  });
+
+  app.delete("/api/recipes/:id", isAuthenticated, async (req, res) => {
+    try {
+      const userId = getUserId(req);
+      await storage.deleteRecipe(userId, req.params.id);
       res.json({ success: true });
     } catch (error) {
       res.status(500).json({ error: "Failed to delete recipe" });
+    }
+  });
+
+  // ====== FAVORITES ======
+  app.get("/api/favorites", isAuthenticated, async (req, res) => {
+    try {
+      const userId = getUserId(req);
+      const favorites = await storage.getFavorites(userId);
+      res.json(favorites);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch favorites" });
+    }
+  });
+
+  app.post("/api/favorites", isAuthenticated, async (req, res) => {
+    try {
+      const userId = getUserId(req);
+      const data = insertFavoriteSchema.parse({ ...req.body, userId });
+      const favorite = await storage.createFavorite(data);
+      res.json(favorite);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        res.status(400).json({ error: error.errors });
+      } else {
+        res.status(500).json({ error: "Failed to create favorite" });
+      }
+    }
+  });
+
+  app.patch("/api/favorites/:id", isAuthenticated, async (req, res) => {
+    try {
+      const userId = getUserId(req);
+      const favorite = await storage.updateFavorite(userId, req.params.id, req.body);
+      if (!favorite) {
+        res.status(404).json({ error: "Favorite not found" });
+      } else {
+        res.json(favorite);
+      }
+    } catch (error) {
+      res.status(500).json({ error: "Failed to update favorite" });
+    }
+  });
+
+  app.delete("/api/favorites/:id", isAuthenticated, async (req, res) => {
+    try {
+      const userId = getUserId(req);
+      await storage.deleteFavorite(userId, req.params.id);
+      res.json({ success: true });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to delete favorite" });
+    }
+  });
+
+  // ====== COLLECTIONS ======
+  app.get("/api/collections", isAuthenticated, async (req, res) => {
+    try {
+      const userId = getUserId(req);
+      const collections = await storage.getCollections(userId);
+      res.json(collections);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch collections" });
+    }
+  });
+
+  app.post("/api/collections", isAuthenticated, async (req, res) => {
+    try {
+      const userId = getUserId(req);
+      const data = insertCollectionSchema.parse({ ...req.body, userId });
+      const collection = await storage.createCollection(data);
+      res.json(collection);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        res.status(400).json({ error: error.errors });
+      } else {
+        res.status(500).json({ error: "Failed to create collection" });
+      }
+    }
+  });
+
+  app.patch("/api/collections/:id", isAuthenticated, async (req, res) => {
+    try {
+      const userId = getUserId(req);
+      const collection = await storage.updateCollection(userId, req.params.id, req.body);
+      if (!collection) {
+        res.status(404).json({ error: "Collection not found" });
+      } else {
+        res.json(collection);
+      }
+    } catch (error) {
+      res.status(500).json({ error: "Failed to update collection" });
+    }
+  });
+
+  app.delete("/api/collections/:id", isAuthenticated, async (req, res) => {
+    try {
+      const userId = getUserId(req);
+      await storage.deleteCollection(userId, req.params.id);
+      res.json({ success: true });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to delete collection" });
+    }
+  });
+
+  // ====== HISTORY ======
+  app.get("/api/history", isAuthenticated, async (req, res) => {
+    try {
+      const userId = getUserId(req);
+      const history = await storage.getHistory(userId);
+      res.json(history);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch history" });
+    }
+  });
+
+  app.post("/api/history", isAuthenticated, async (req, res) => {
+    try {
+      const userId = getUserId(req);
+      const data = insertHistorySchema.parse({ ...req.body, userId });
+      const entry = await storage.createHistoryEntry(data);
+      res.json(entry);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        res.status(400).json({ error: error.errors });
+      } else {
+        res.status(500).json({ error: "Failed to create history entry" });
+      }
+    }
+  });
+
+  // ====== VARIATIONS ======
+  app.get("/api/variations", isAuthenticated, async (req, res) => {
+    try {
+      const userId = getUserId(req);
+      const variations = await storage.getVariations(userId);
+      res.json(variations);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch variations" });
+    }
+  });
+
+  app.post("/api/variations", isAuthenticated, async (req, res) => {
+    try {
+      const userId = getUserId(req);
+      const data = insertVariationSchema.parse({ ...req.body, userId });
+      const variation = await storage.createVariation(data);
+      res.json(variation);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        res.status(400).json({ error: error.errors });
+      } else {
+        res.status(500).json({ error: "Failed to create variation" });
+      }
+    }
+  });
+
+  // ====== FLIGHTS ======
+  app.get("/api/flights", isAuthenticated, async (req, res) => {
+    try {
+      const userId = getUserId(req);
+      const flights = await storage.getFlights(userId);
+      res.json(flights);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch flights" });
+    }
+  });
+
+  app.get("/api/flights/:id", isAuthenticated, async (req, res) => {
+    try {
+      const userId = getUserId(req);
+      const flight = await storage.getFlight(userId, req.params.id);
+      if (!flight) {
+        res.status(404).json({ error: "Flight not found" });
+      } else {
+        res.json(flight);
+      }
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch flight" });
+    }
+  });
+
+  app.post("/api/flights", isAuthenticated, async (req, res) => {
+    try {
+      const userId = getUserId(req);
+      const data = insertFlightSchema.parse({ ...req.body, userId });
+      const flight = await storage.createFlight(data);
+      res.json(flight);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        res.status(400).json({ error: error.errors });
+      } else {
+        res.status(500).json({ error: "Failed to create flight" });
+      }
+    }
+  });
+
+  app.delete("/api/flights/:id", isAuthenticated, async (req, res) => {
+    try {
+      const userId = getUserId(req);
+      await storage.deleteFlight(userId, req.params.id);
+      res.json({ success: true });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to delete flight" });
+    }
+  });
+
+  // ====== FLIGHT RESULTS ======
+  app.get("/api/flights/:flightId/results", isAuthenticated, async (req, res) => {
+    try {
+      const userId = getUserId(req);
+      const results = await storage.getFlightResults(userId, req.params.flightId);
+      res.json(results);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch flight results" });
+    }
+  });
+
+  app.post("/api/flight-results", isAuthenticated, async (req, res) => {
+    try {
+      const userId = getUserId(req);
+      const data = insertFlightResultSchema.parse({ ...req.body, userId });
+      const result = await storage.createFlightResult(data);
+      res.json(result);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        res.status(400).json({ error: error.errors });
+      } else {
+        res.status(500).json({ error: "Failed to create flight result" });
+      }
+    }
+  });
+
+  app.patch("/api/flight-results/:id", isAuthenticated, async (req, res) => {
+    try {
+      const userId = getUserId(req);
+      const result = await storage.updateFlightResult(userId, req.params.id, req.body);
+      if (!result) {
+        res.status(404).json({ error: "Flight result not found" });
+      } else {
+        res.json(result);
+      }
+    } catch (error) {
+      res.status(500).json({ error: "Failed to update flight result" });
+    }
+  });
+
+  // ====== PAIRINGS ======
+  app.get("/api/pairings", isAuthenticated, async (req, res) => {
+    try {
+      const userId = getUserId(req);
+      const pairings = await storage.getPairings(userId);
+      res.json(pairings);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch pairings" });
+    }
+  });
+
+  app.post("/api/pairings", isAuthenticated, async (req, res) => {
+    try {
+      const userId = getUserId(req);
+      const data = insertPairingSchema.parse({ ...req.body, userId });
+      const pairing = await storage.createPairing(data);
+      res.json(pairing);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        res.status(400).json({ error: error.errors });
+      } else {
+        res.status(500).json({ error: "Failed to create pairing" });
+      }
+    }
+  });
+
+  // ====== TOOLS ======
+  app.get("/api/tools", isAuthenticated, async (req, res) => {
+    try {
+      const userId = getUserId(req);
+      const tools = await storage.getTools(userId);
+      res.json(tools);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch tools" });
+    }
+  });
+
+  app.post("/api/tools", isAuthenticated, async (req, res) => {
+    try {
+      const userId = getUserId(req);
+      const data = insertToolSchema.parse({ ...req.body, userId });
+      const tool = await storage.createTool(data);
+      res.json(tool);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        res.status(400).json({ error: error.errors });
+      } else {
+        res.status(500).json({ error: "Failed to create tool" });
+      }
+    }
+  });
+
+  app.patch("/api/tools/:id", isAuthenticated, async (req, res) => {
+    try {
+      const userId = getUserId(req);
+      const tool = await storage.updateTool(userId, req.params.id, req.body);
+      if (!tool) {
+        res.status(404).json({ error: "Tool not found" });
+      } else {
+        res.json(tool);
+      }
+    } catch (error) {
+      res.status(500).json({ error: "Failed to update tool" });
+    }
+  });
+
+  app.delete("/api/tools/:id", isAuthenticated, async (req, res) => {
+    try {
+      const userId = getUserId(req);
+      await storage.deleteTool(userId, req.params.id);
+      res.json({ success: true });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to delete tool" });
+    }
+  });
+
+  // ====== USER SETTINGS ======
+  app.get("/api/settings", isAuthenticated, async (req, res) => {
+    try {
+      const userId = getUserId(req);
+      let settings = await storage.getUserSettings(userId);
+      if (!settings) {
+        await storage.seedUserData(userId);
+        settings = await storage.getUserSettings(userId);
+      }
+      res.json(settings);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch settings" });
+    }
+  });
+
+  app.patch("/api/settings", isAuthenticated, async (req, res) => {
+    try {
+      const userId = getUserId(req);
+      const settings = await storage.upsertUserSettings(userId, req.body);
+      res.json(settings);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to update settings" });
+    }
+  });
+
+  // ====== SEED DATA (On first login) ======
+  app.post("/api/seed", isAuthenticated, async (req, res) => {
+    try {
+      const userId = getUserId(req);
+      await storage.seedUserData(userId);
+      res.json({ success: true });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to seed data" });
     }
   });
 

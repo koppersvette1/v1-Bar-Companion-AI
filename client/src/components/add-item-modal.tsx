@@ -1,31 +1,47 @@
 import { useState, useEffect } from "react";
-import { useStore, InventoryItem } from "@/lib/store"; // Category type is string in new store or inferred?
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { X, Upload, Check, Loader2, Camera, ScanLine, Sparkles, DollarSign } from "lucide-react";
 import { useDropzone } from "react-dropzone";
 import { cn } from "@/lib/utils";
 import { scanImage } from "@/lib/scanner";
+import type { InsertInventory, UserSettings } from "@shared/schema";
 
 const CATEGORIES = ['spirit', 'liqueur', 'bitters', 'mixer', 'syrup', 'garnish', 'tool', 'accessory'];
 
 export default function AddItemModal({ open, onOpenChange }: { open: boolean, onOpenChange: (open: boolean) => void }) {
-  const { addInventoryItem, settings } = useStore();
+  const queryClient = useQueryClient();
   
-  // Form State
+  const { data: settings } = useQuery<UserSettings>({
+    queryKey: ["/api/settings"],
+  });
+  
   const [name, setName] = useState("");
   const [category, setCategory] = useState("spirit");
   const [image, setImage] = useState<string | null>(null);
-  
-  // Cost State
   const [price, setPrice] = useState("");
   const [size, setSize] = useState("");
-  
-  // Scan State
   const [mode, setMode] = useState<'scan' | 'review' | 'manual'>('scan');
   const [isScanning, setIsScanning] = useState(false);
   const [scanStatus, setScanStatus] = useState("Waiting for image...");
   const [suggestions, setSuggestions] = useState<string[]>([]);
   
-  // Reset when closed
+  const addItemMutation = useMutation({
+    mutationFn: async (item: Partial<InsertInventory>) => {
+      const res = await fetch("/api/inventory", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(item),
+        credentials: "include",
+      });
+      if (!res.ok) throw new Error("Failed to add item");
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/inventory"] });
+      onOpenChange(false);
+    },
+  });
+  
   useEffect(() => {
     if (!open) {
       setTimeout(() => {
@@ -44,12 +60,10 @@ export default function AddItemModal({ open, onOpenChange }: { open: boolean, on
   const onDrop = async (acceptedFiles: File[]) => {
     const file = acceptedFiles[0];
     if (file) {
-      // 1. Show Preview
       const reader = new FileReader();
       reader.onload = () => setImage(reader.result as string);
       reader.readAsDataURL(file);
 
-      // 2. Start Scan
       setIsScanning(true);
       setScanStatus("Reading label text...");
       
@@ -91,18 +105,15 @@ export default function AddItemModal({ open, onOpenChange }: { open: boolean, on
   const handleSubmit = () => {
     if (!name) return;
     
-    addInventoryItem({
+    addItemMutation.mutate({
       name,
       category,
       photo: image || undefined,
       quantity: 1,
-      // Cost optional
       price: price ? parseFloat(price) : undefined,
       bottleSizeMl: size ? parseFloat(size) : undefined,
-      tags: [], // Auto-tagging could happen here
+      tags: [],
     });
-    
-    onOpenChange(false);
   };
 
   if (!open) return null;
@@ -111,20 +122,22 @@ export default function AddItemModal({ open, onOpenChange }: { open: boolean, on
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
       <div className="bg-slate-900 w-full max-w-lg rounded-3xl border border-slate-800 shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300 flex flex-col max-h-[90vh]">
         
-        {/* Header */}
         <div className="p-4 border-b border-slate-800 flex items-center justify-between bg-slate-800/50">
           <h2 className="text-lg font-bold text-white flex items-center gap-2">
             {mode === 'scan' ? <ScanLine className="w-5 h-5 text-orange-500" /> : <Check className="w-5 h-5 text-green-400" />}
             {mode === 'scan' ? "Scan Item" : "Confirm Details"}
           </h2>
-          <button onClick={() => onOpenChange(false)} className="text-slate-500 hover:text-white p-2 hover:bg-white/10 rounded-full transition-colors">
+          <button 
+            onClick={() => onOpenChange(false)} 
+            className="text-slate-500 hover:text-white p-2 hover:bg-white/10 rounded-full transition-colors"
+            data-testid="button-close-modal"
+          >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         <div className="flex-1 overflow-y-auto p-6 space-y-6 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
           
-          {/* SCAN MODE */}
           {mode === 'scan' && (
             <div className="flex flex-col items-center justify-center space-y-8 py-8 animate-in slide-in-from-bottom-4 duration-500">
               
@@ -135,7 +148,7 @@ export default function AddItemModal({ open, onOpenChange }: { open: boolean, on
                   isDragActive ? "border-orange-500 bg-orange-500/10 scale-105" : "border-slate-800 bg-black/20"
                 )}
               >
-                <input {...getInputProps()} />
+                <input {...getInputProps()} data-testid="input-scan-image" />
                 
                 {isScanning ? (
                   <div className="absolute inset-0 bg-black/80 flex flex-col items-center justify-center text-center p-4 space-y-4">
@@ -164,6 +177,7 @@ export default function AddItemModal({ open, onOpenChange }: { open: boolean, on
                 <button 
                   onClick={openFilePicker}
                   className="flex flex-col items-center justify-center p-4 bg-orange-500 text-white rounded-2xl hover:bg-orange-600 transition-all active:scale-95 shadow-lg shadow-orange-500/20"
+                  data-testid="button-take-photo"
                 >
                   <Camera className="w-6 h-6 mb-2" />
                   <span className="font-bold text-sm">Take Photo</span>
@@ -171,19 +185,23 @@ export default function AddItemModal({ open, onOpenChange }: { open: boolean, on
                  <button 
                   onClick={openFilePicker}
                   className="flex flex-col items-center justify-center p-4 bg-slate-800 text-white border border-slate-700 rounded-2xl hover:bg-slate-700 transition-all active:scale-95"
+                  data-testid="button-upload"
                 >
                   <Upload className="w-6 h-6 mb-2 text-slate-400" />
                   <span className="font-bold text-sm">Upload</span>
                 </button>
               </div>
 
-              <button onClick={() => setMode('manual')} className="text-sm text-slate-500 hover:text-white underline decoration-dotted">
+              <button 
+                onClick={() => setMode('manual')} 
+                className="text-sm text-slate-500 hover:text-white underline decoration-dotted"
+                data-testid="button-manual-entry"
+              >
                 Skip and add manually
               </button>
             </div>
           )}
 
-          {/* REVIEW / MANUAL MODE */}
           {(mode === 'review' || mode === 'manual') && (
             <div className="space-y-6 animate-in slide-in-from-right-8 duration-300">
               
@@ -208,7 +226,7 @@ export default function AddItemModal({ open, onOpenChange }: { open: boolean, on
                 
                 <div className="flex-1 space-y-1">
                   <div className="flex items-center gap-2">
-                    <label className="text-xs font-bold text-orange-500 uppercase tracking-wider">Detected Item</label>
+                    <label className="text-xs font-bold text-orange-500 uppercase tracking-wider">Item Name</label>
                   </div>
                   <input 
                     type="text" 
@@ -216,6 +234,7 @@ export default function AddItemModal({ open, onOpenChange }: { open: boolean, on
                     onChange={(e) => setName(e.target.value)}
                     className="w-full bg-transparent border-none text-2xl font-serif font-bold text-white placeholder:text-white/20 p-0 focus:ring-0"
                     placeholder="Name your item..."
+                    data-testid="input-item-name"
                   />
                   {suggestions.length > 0 && (
                     <div className="flex flex-wrap gap-2 mt-2">
@@ -224,6 +243,7 @@ export default function AddItemModal({ open, onOpenChange }: { open: boolean, on
                           key={s} 
                           onClick={() => setName(s)}
                           className="text-[10px] px-2 py-1 rounded bg-slate-800 hover:bg-orange-500/20 hover:text-orange-500 transition-colors border border-slate-700"
+                          data-testid={`button-suggestion-${s}`}
                         >
                           {s}
                         </button>
@@ -246,6 +266,7 @@ export default function AddItemModal({ open, onOpenChange }: { open: boolean, on
                           ? "bg-orange-500 text-white border-orange-500" 
                           : "bg-slate-800 text-slate-500 border-transparent hover:border-slate-700"
                       )}
+                      data-testid={`button-category-${cat}`}
                     >
                       {cat}
                     </button>
@@ -260,8 +281,7 @@ export default function AddItemModal({ open, onOpenChange }: { open: boolean, on
                 </div>
               )}
               
-              {/* COST TRACKING (OPTIONAL) */}
-              {settings.enableCostTracking && (
+              {settings?.enableCostTracking && (
                 <div className="p-4 rounded-xl bg-green-500/5 border border-green-500/10 space-y-3">
                    <div className="flex items-center justify-between">
                      <div className="flex items-center gap-2 text-green-500">
@@ -279,6 +299,7 @@ export default function AddItemModal({ open, onOpenChange }: { open: boolean, on
                          onChange={e => setPrice(e.target.value)}
                          placeholder="0.00"
                          className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white focus:ring-1 focus:ring-green-500/50"
+                         data-testid="input-price"
                        />
                      </div>
                      <div>
@@ -289,6 +310,7 @@ export default function AddItemModal({ open, onOpenChange }: { open: boolean, on
                           onChange={e => setSize(e.target.value)}
                           placeholder="750"
                           className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white focus:ring-1 focus:ring-green-500/50"
+                          data-testid="input-size"
                         />
                      </div>
                    </div>
@@ -299,15 +321,17 @@ export default function AddItemModal({ open, onOpenChange }: { open: boolean, on
                 <button 
                   onClick={() => setMode('scan')}
                   className="flex-1 py-3 bg-slate-800 text-white font-bold rounded-xl hover:bg-slate-700 transition-all border border-slate-700"
+                  data-testid="button-retake"
                 >
                   Retake
                 </button>
                 <button 
                   onClick={handleSubmit}
-                  disabled={!name}
+                  disabled={!name || addItemMutation.isPending}
                   className="flex-[2] py-3 bg-orange-500 text-white font-bold rounded-xl hover:bg-orange-600 transition-all disabled:opacity-50 shadow-lg shadow-orange-500/20"
+                  data-testid="button-save"
                 >
-                  Save to Bar
+                  {addItemMutation.isPending ? "Saving..." : "Save to Bar"}
                 </button>
               </div>
 

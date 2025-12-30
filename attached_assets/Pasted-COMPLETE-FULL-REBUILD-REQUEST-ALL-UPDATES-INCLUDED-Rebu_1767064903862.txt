@@ -1,0 +1,337 @@
+COMPLETE FULL REBUILD REQUEST (ALL UPDATES INCLUDED):
+Rebuild this project end-to-end into a production-quality, mobile-first full-stack web app called “BarBuddy”.
+You may delete/replace all code, schema, and UI. Keep everything per-user with authentication.
+This build must include ALL features listed below. Provide a README with setup and extension points.
+
+========================================================
+0) SYSTEM DESIGN: FULL HYBRID (RULES + LEARNING)
+========================================================
+- Deterministic bartender rules = guardrails (never violated).
+- Learning/personalization = re-ranking + defaults (within guardrails).
+- Explanations (“Why”) everywhere for trust.
+
+SMOKED COCKTAIL GUARDRAILS (enforce globally):
+- Default method: smoke the GLASS, not the drink.
+- Smoked drinks: reduce bitters 30–50%.
+- Max 3 total dashes bitters.
+- Lingering visible smoke = too much.
+- Smoke time 5–20s based on wood intensity.
+- Steps: build → smoke → rest 20–30s → pour → garnish.
+- Troubleshooting:
+  - Too smoky → reduce time / lighter wood
+  - Too bitter → reduce bitters / reduce smoke / add dilution
+  - Flat → express citrus peel
+  - Too sweet → bitters or acid, not sugar
+  - Hot/sharp → more dilution
+Time caps:
+- Hickory ≤ 8s
+- Mesquite ≤ 7s
+- Oak ≤ 12s
+Garnish-only woods: enforce method=garnish only.
+
+========================================================
+1) AUTH + PER-USER DATA
+========================================================
+Email/password login.
+Everything per-user:
+inventory, tools, smoker setup, wood profiles, garnish library, cocktails,
+favorites, collections, people profiles, preferences, history, tuning variations,
+learning weights, flights, flight results, optional cost fields.
+
+========================================================
+2) INVENTORY + SCANNING (BARCODE FIRST, OCR FALLBACK)
+========================================================
+Inventory item fields:
+- name, brand, category/spirit type, subtype, ABV(optional), bottleSizeMl(optional),
+  quantity(optional), photo(optional), notes, tags.
+
+Bottle scan:
+- UPC/EAN barcode primary
+- label OCR fallback (crop/confirm → OCR → fuzzy match → user confirm/edit).
+Learn-from-edits:
+- store per-user mappings to auto-fill next time.
+
+Manual entry always available.
+
+========================================================
+3) TOOLS + SMOKER SETUP + SMOKER DEVICE TYPES
+========================================================
+Tools inventory (shaker, jigger, strainer, muddler, blender, smoker, etc.).
+Smoker enabled toggle and settings.
+
+Add Smoker Type (device-aware):
+- Chimney / Top-Mounted (Aged & Charred-style)  <-- default
+- Cloché / Dome
+- Smoking Gun (handheld)
+- Torch-only (chips + torch)
+
+- Store per-user default smokerType.
+- Add per-session “Quick Switch” on Smoker page + Guided Smoke start screen.
+- All smoker instructions and guided steps adapt to selected smoker type.
+
+Chimney workflow:
+- small pinch wood, avoid packing
+- torch until steady smoke (not roaring)
+- capture in glass with timer
+- rest 20–30s
+- pour + garnish
+- cleaning tip to avoid stale/ashy smoke
+
+Cloche workflow:
+- ignite on tray/board
+- trap smoke under dome (default still smoke glass)
+- shorter capture times; quick saturation note
+
+========================================================
+4) WOOD PROFILE SYSTEM (BUILT-IN + USER-ADDED + ADAPTIVE)
+========================================================
+Wood profile fields:
+- name
+- intensity (light/medium/strong/very-strong)
+- timeMin/timeMax
+- purpose
+- tastingNotes
+- flavorTags[] (fruity/floral/nutty/toasty/savory/campfire/clean/spicy/etc)
+- bestWithDrinkTags[]
+- bestWithFoodTags[]
+- avoidWithDrinkTags[]
+- beginnerSafe
+- isInMyKit
+- methodRestriction (optional: garnishOnly)
+Optional costPerUse if cost tracking enabled.
+
+Seed built-in woods (editable defaults, enabled):
+Core: Alder, Apple, Cherry, Oak, Pecan, Hickory, Mesquite, Maple
+Fancy: Pear, Peach, Walnut, Olive, Beech, Grapevine
+Botanical garnish-only: Rosemary (garnishOnly), Cinnamon (garnishOnly)
+
+User can add/edit/delete custom woods; disable any wood.
+
+Adaptive wood scoring:
+- Match meal tags, drink tags, and flavorTags to recommend top 3 woods.
+- Respect method restrictions and caps.
+Learning:
+- per-person wood affinity updated from ratings/feedback/tuning.
+Learning only re-ranks and sets defaults within guardrails.
+
+========================================================
+5) GARNISH SYSTEM (LIBRARY + PREP + EFFECTS + RECOMMENDATIONS)
+========================================================
+Add per-user Garnish Library with:
+- name, category (citrus/herb/spice/fruit/savory/rim/other)
+- flavorTags[]
+- primaryEffect + secondaryEffects[]
+- bestWithDrinkTags[]
+- bestWithWoods (optional)
+- smokeFriendly boolean
+- recommendedSmokeMethod (NONE or GARNISH_ONLY)
+- recommendedSmokeTimeMin/Max (if garnish-only)
+- prepSteps (structured list)
+- storageTips
+- notes
+- isInMyBar toggle
+- optional photos (1–3 user-uploaded reference images)
+Optional cost fields when cost tracking on.
+
+Seed default garnishes (editable):
+Citrus: orange/lemon/grapefruit/lime peel
+Herbs: rosemary/thyme/mint/sage
+Spices: cinnamon stick/star anise/clove/nutmeg (fresh grated)
+Fruits: luxardo/brandied cherry, dehydrated orange wheel, dehydrated lemon wheel, blackberry
+Savory: olive, cocktail onion
+Rims: smoked salt, demerara sugar, chili-salt, cocoa-sugar
+
+Cocktail pages show “Recommended Garnishes” ranked by drink+wood+person prefs, with “Why”.
+
+========================================================
+6) PEOPLE PROFILES + “WHO IS THIS FOR?” (RESTORE + REQUIRED)
+========================================================
+Add People feature end-to-end (must not be missing):
+- Top-level People tab.
+- Profiles with tabs: Overview / Preferences / Favorites / History.
+Preferences builder:
+- sweetness preference, ABV comfort range
+- style chips (wine-like, spritz, spirit-forward, citrus, herbal, smoky, bitter/amaro, dessert, low-ABV, tiki, refreshing)
+- dislikes
+- seasonal lean: hot→white-wine; cool→red-wine
+- wine fields: dry wine preference, wine ABV comfort (~13.5%+)
+Add per-person garnish preferences:
+- preferred garnish categories, disliked garnish tags, default citrus (optional).
+
+Add “Who is this for?” selector in:
+- Make flow
+- Save to Favorites
+- Adjust & Remake
+- Pairing flows
+Store madeForPersonId in made history, and allow favorites for person(s).
+
+Learning per person:
+- taste weights updated from ratings, tuning, favorites, flight votes.
+
+========================================================
+7) COCKTAIL LIBRARY + GENERATION (COUNTS + NA + KIDS)
+========================================================
+Seed ~50 classic cocktails with metadata, search/filter, Make Now/Almost.
+
+GENERATION OUTPUT REQUIREMENT (always):
+- Alcoholic Cocktails: 5–6
+- Mocktails (NA): 3–4
+- If setting enabled: Kid-Friendly Mocktails (NA): +2–3 extra (in addition)
+
+Mocktails MUST be strictly NA:
+- No spirits, liqueurs, wine/beer, fortified wines, bitters, tinctures, alcohol extracts.
+- NA spirits allowed only if explicitly tagged NA and labeled “NA spirit”.
+
+Settings → Mocktails:
+- includeKidFriendlyMocktails (default false)
+- kidFriendlyMocktailCount (default 2; allow 2–3)
+- allowCaffeineInKidMocktails (default false)
+- allowSpicyInKidMocktails (default false)
+
+Kid-friendly NA constraints:
+- no caffeine by default
+- no spicy heat by default
+- simple steps, fun presentation
+
+Seed “Kid-Friendly NA Classics” (editable) to guarantee good output:
+- Shirley Temple (NA)
+- Roy Rogers (NA)
+- Pineapple-Lime Fizz (NA)
+- Orange Cream Spritz (NA)
+- Watermelon Cooler (NA)
+- Berry Lemonade Sparkler (NA)
+- “Blue Lagoon” NA (label treat if sports drink used)
+- Tropical Sunrise (NA)
+- Cucumber Mint Cooler (NA)
+- Cocoa Spice (NA; obey caffeine toggle)
+Also seed 6–8 “Adult NA Classics” (strictly NA).
+
+========================================================
+8) MEAL ↔ DRINK PAIRING
+========================================================
+Meal entry with cuisine/protein/method/spice/richness/acidity/smoky.
+Pairing engine:
+- rule-based scoring + learning re-ranking per person.
+Smoker integration:
+- if grilled/bbq/char/rich and smoker enabled, boost smoked options and recommend woods.
+Always show “Why this pairing works”.
+
+========================================================
+9) SMOKER MODE + GUIDED SMOKE + FIXES
+========================================================
+Smoker UI includes:
+- smoked toggle
+- wood picker (default from learning)
+- method picker (glass default; garnish; cocktail only for high-proof/stirred with warning)
+- intensity slider + presets
+Guided Smoke:
+- device-aware steps + timers (capture time + rest time)
+Repeat last smoke settings.
+Post-taste quick fixes update recommendations within caps.
+
+========================================================
+10) RECIPE TUNING (ADJUST & REMAKE)
+========================================================
+User notes + quick chips:
+too sweet / too sour / too bitter / want more bitter / too boozy / can’t taste spirit /
+too smoky / want more smoke / flat / want more refreshing / want more complex / more texture
+“Adjust & Remake” creates a saved Variation with Before→After and reasoning.
+Respects smoker guardrails and bitter caps.
+Learning uses tuning outcomes to adjust defaults per person.
+
+========================================================
+11) FAVORITES LIBRARY + IMPORT FROM URL
+========================================================
+Favorites are a real library:
+- collections/folders, tags, notes, pinning
+- best for person(s)
+- preferred serve settings (wood/method/time, garnish, glass)
+Quick actions: Make it, Pair it, Adjust & Remake, Repeat last tuning.
+
+Import from URL:
+- fetch page server-side, extract structured recipe fields only
+- confirm/edit screen
+- store source attribution (name + URL) and “View original” link
+- no full-page copying
+- ingredient mapping to inventory, show missing list.
+
+========================================================
+12) EDUCATION TAB (SMOKE + WOOD + GARNISH + FIX IT + FLIGHTS)
+========================================================
+Add top-level Education tab with:
+1) Smoke Basics (device-aware)
+2) Wood Flavor Guide (dynamic from wood profiles)
+3) Garnish Guide:
+   - how to add garnishes
+   - how to prepare/store garnishes
+   - what effect each garnish provides (aroma/taste/balance/finish)
+   - garnish+wood pairing
+   - show user-uploaded garnish photos when available
+4) What to Look For (sensory checklist)
+5) Fix It:
+   - too smoky, too bitter, flat, too sweet, too sharp/hot, can’t taste spirit, ashy
+   - includes “Fix with a garnish” buttons
+   - Apply Fix updates active session or creates tuned variation
+6) Guided Experiments / Flights (wood flights + garnish flights)
+
+========================================================
+13) FLIGHT MODE (ALCOHOLIC / NA / KIDS) + PLACEMAT
+========================================================
+Add Flight Mode as an option for all categories:
+- Alcoholic Flight (3–4 minis)
+- NA Flight (3–4 minis)
+- Kid-Friendly NA Flight (3 minis default; allow 3–4)
+Optional Mixed Flight if desired.
+
+Flight Builder selects:
+- category
+- theme (citrus, spritz, tropical, dessert, wine-like, smoked (alcoholic only))
+- number of samples
+- pour size (tasting portions)
+
+Each flight includes:
+- prep order
+- shared ingredients list (deduped)
+- garnish prep checklist
+- tools checklist
+- smoker plan if applicable
+
+Voting + learning:
+- Love/Like/Meh/Nope + chips (too sweet, want fizz, etc.)
+- Winner selection (one winner) → save to Favorites and optionally “House Favorite for [Person]”
+- Logged results update per-person taste weights and wood/garnish affinities.
+
+Add a Flight Placemat view:
+- Screen Mode (big tappable)
+- Print Mode (ink-friendly)
+Placemat includes:
+- header (category, theme, pour size, who for)
+- prep checklist
+- numbered drink cards with rating controls + notes
+- winner toggle
+- “Log all results”, “Save winner to Favorites”, “Rematch flight”
+Kid placemat includes fun “Pick your favorite!” labels and no alcohol references.
+
+========================================================
+14) OPTIONAL COST TRACKING (TOGGLE; OFF DEFAULT)
+========================================================
+Settings toggle enableCostTracking default false.
+When OFF: hide all cost UI.
+When ON: allow manual bottle price+size+store, per-drink cost breakdown, optional receipt OCR.
+No scraping retailer sites; provider interface only.
+
+========================================================
+15) TECH / STACK REQUIREMENTS
+========================================================
+Prefer Next.js + TypeScript + Prisma + SQLite/Postgres (SQLite ok for MVP in Replit).
+Image uploads work in Replit (for bottles + garnish photos).
+OCR works without paid APIs.
+README includes:
+- setup/run
+- schema overview
+- rule engine vs learning engine
+- validation rules for NA and kid-friendly
+- extension points for barcode provider and cost provider.
+
+DELIVERABLE:
+A working BarBuddy app with ALL features above, with no missing People/“Who is this for?”, strict NA mocktails, optional kid-friendly extras, full smoker device support, expanded wood and garnish systems, Education with Fix It, Flight Mode for all categories, and Flight Placemat.

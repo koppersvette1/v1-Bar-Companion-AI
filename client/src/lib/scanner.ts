@@ -1,7 +1,7 @@
 import Tesseract from 'tesseract.js';
-import { Category, Item } from './store';
 
-// Knowledge base for heuristics
+type Category = 'spirit' | 'liqueur' | 'bitters' | 'mixer' | 'syrup' | 'garnish' | 'tool' | 'accessory';
+
 const KEYWORDS: Record<string, { category: Category, type: string }> = {
   // Spirits
   'whiskey': { category: 'spirit', type: 'Whiskey' },
