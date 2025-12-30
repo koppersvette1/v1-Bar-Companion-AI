@@ -193,9 +193,10 @@ function WoodEditor({ wood, onSave, onCancel }: { wood?: Partial<Wood>; onSave: 
 }
 
 export default function Settings() {
-  const { settings, updateSettings, reset, woodLibrary, toggleWoodKit, updateWood, addWood, deleteWood } = useStore();
+  const { settings, updateSettings, reset, woodLibrary, toggleWoodKit, updateWood, addWood, deleteWood, garnishLibrary, toggleGarnishKit, addGarnish, deleteGarnish } = useStore();
   const { toast } = useToast();
   const [woodLibraryExpanded, setWoodLibraryExpanded] = useState(false);
+  const [garnishLibraryExpanded, setGarnishLibraryExpanded] = useState(false);
   const [showAddWood, setShowAddWood] = useState(false);
   const [editingWoodId, setEditingWoodId] = useState<string | null>(null);
 
@@ -437,6 +438,108 @@ export default function Settings() {
                )}
              </div>
            )}
+        </div>
+
+        {/* Garnish Library */}
+        <div className="p-6 bg-slate-900 border border-slate-800 rounded-2xl space-y-4">
+          <div className="flex items-center gap-3">
+            <div className="p-3 bg-green-500/10 rounded-xl text-green-500">
+              <Leaf className="w-6 h-6" />
+            </div>
+            <div>
+              <h3 className="text-lg font-bold text-white">Garnish Library</h3>
+              <p className="text-sm text-slate-400">Citrus, herbs, spices & rims</p>
+            </div>
+          </div>
+
+          <button 
+            onClick={() => setGarnishLibraryExpanded(!garnishLibraryExpanded)}
+            className="flex items-center justify-between w-full text-left border-t border-slate-800 pt-4 mt-4"
+            data-testid="button-expand-garnish-library"
+          >
+            <div className="flex items-center gap-2">
+              <span className="font-bold text-white text-sm">Manage Garnishes</span>
+              <span className="text-xs text-slate-500">({garnishLibrary.length} items)</span>
+            </div>
+            {garnishLibraryExpanded ? <ChevronUp className="w-4 h-4 text-slate-500" /> : <ChevronDown className="w-4 h-4 text-slate-500" />}
+          </button>
+
+          {garnishLibraryExpanded && (
+            <div className="space-y-2 animate-in slide-in-from-top-2">
+              {['citrus', 'herb', 'spice', 'fruit', 'savory', 'rim'].map(category => {
+                const categoryGarnishes = garnishLibrary.filter(g => g.category === category);
+                if (categoryGarnishes.length === 0) return null;
+                return (
+                  <div key={category} className="space-y-2">
+                    <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wide pt-2">
+                      {category === 'rim' ? 'Rims' : category.charAt(0).toUpperCase() + category.slice(1)}
+                    </h4>
+                    {categoryGarnishes.map(garnish => (
+                      <div 
+                        key={garnish.id}
+                        className={cn(
+                          "p-3 rounded-xl border transition-all flex items-center justify-between",
+                          garnish.isInMyKit 
+                            ? "bg-slate-800/50 border-slate-700" 
+                            : "bg-slate-900/50 border-slate-800 opacity-60"
+                        )}
+                        data-testid={`garnish-item-${garnish.id}`}
+                      >
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <h5 className="font-medium text-white text-sm">{garnish.name}</h5>
+                            {garnish.smokeFriendly && (
+                              <span className="text-[10px] bg-orange-500/20 text-orange-400 px-1.5 py-0.5 rounded font-bold">
+                                SMOKE OK
+                              </span>
+                            )}
+                            {garnish.isCustom && (
+                              <span className="text-[10px] bg-blue-500/20 text-blue-400 px-1.5 py-0.5 rounded font-bold">
+                                CUSTOM
+                              </span>
+                            )}
+                          </div>
+                          <div className="flex flex-wrap gap-1 mt-1">
+                            {garnish.flavorTags.slice(0, 3).map(tag => (
+                              <span key={tag} className="text-[10px] text-slate-500">{tag}</span>
+                            ))}
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          {garnish.isCustom && (
+                            <button 
+                              onClick={() => {
+                                if (confirm(`Delete ${garnish.name}?`)) {
+                                  deleteGarnish(garnish.id);
+                                  toast({ title: "Garnish deleted" });
+                                }
+                              }}
+                              className="p-1.5 text-slate-500 hover:text-red-400 transition-colors"
+                              data-testid={`button-delete-garnish-${garnish.id}`}
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          )}
+                          <button 
+                            onClick={() => toggleGarnishKit(garnish.id)}
+                            className={cn(
+                              "p-1.5 rounded-full transition-colors",
+                              garnish.isInMyKit 
+                                ? "bg-green-500 text-white" 
+                                : "bg-slate-700 text-slate-400"
+                            )}
+                            data-testid={`button-toggle-garnish-${garnish.id}`}
+                          >
+                            <Check className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
 
         {/* Danger Zone */}

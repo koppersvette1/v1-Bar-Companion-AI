@@ -1,10 +1,51 @@
-import { useStore, Wood } from "@/lib/store";
-import { Flame, Wind, Play, Info, RotateCcw, Plus, Check, Sparkles, AlertTriangle } from "lucide-react";
+import { useStore, Wood, SmokerDeviceType } from "@/lib/store";
+import { Flame, Wind, Play, Info, RotateCcw, Plus, Check, Sparkles, AlertTriangle, ChevronDown, BookOpen } from "lucide-react";
 import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { getSafeSmokeTimeForWood } from "@/lib/logic/rules";
+import { Link } from "wouter";
 
 type SmokeMethod = 'cloche' | 'garnish';
+
+const DEVICE_INSTRUCTIONS: Record<SmokerDeviceType, { title: string; steps: string[] }> = {
+  'chimney': {
+    title: 'Chimney / Top-Mounted',
+    steps: [
+      'Use small pinch of wood chips - avoid overpacking',
+      'Torch for steady smoke flow (not roaring)',
+      'Capture smoke in glass for recommended time',
+      'Rest 20-30 seconds before pouring',
+      'Express citrus if drink feels flat'
+    ]
+  },
+  'cloche': {
+    title: 'Cloché / Dome',
+    steps: [
+      'Ignite wood on tray or board',
+      'Trap smoke quickly under dome',
+      'Watch timing - small volume saturates fast',
+      'Rest briefly, then lift and pour'
+    ]
+  },
+  'smoking-gun': {
+    title: 'Smoking Gun',
+    steps: [
+      'Load chamber with chips',
+      'Direct tube into inverted glass',
+      'Use shorter times (smoke is concentrated)',
+      'Good for quick infusions'
+    ]
+  },
+  'torch-only': {
+    title: 'Torch + Chips',
+    steps: [
+      'Place chips in heatproof container',
+      'Brief torch to ignite',
+      'Capture smoke in inverted glass',
+      'More variable - practice helps'
+    ]
+  }
+};
 
 export default function Smoker() {
   const { woodLibrary, toggleWoodKit, settings, updateSettings } = useStore();
@@ -103,6 +144,31 @@ export default function Smoker() {
            </h1>
            <p className="text-slate-400 text-sm">Wood profiles & guided sessions</p>
          </div>
+         <Link href="/education" className="flex items-center gap-2 text-sm text-orange-400 hover:text-orange-300" data-testid="link-education">
+           <BookOpen className="w-4 h-4" />
+           Learn
+         </Link>
+      </div>
+
+      {/* Device Instructions */}
+      <div className="p-4 bg-slate-900 border border-slate-800 rounded-xl">
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="text-sm font-bold text-white flex items-center gap-2">
+            <Flame className="w-4 h-4 text-orange-500" />
+            {DEVICE_INSTRUCTIONS[settings.smokerType || 'chimney'].title}
+          </h3>
+          <Link href="/settings" className="text-xs text-slate-500 hover:text-orange-400" data-testid="link-change-device">
+            Change device
+          </Link>
+        </div>
+        <ul className="space-y-1.5">
+          {DEVICE_INSTRUCTIONS[settings.smokerType || 'chimney'].steps.map((step, i) => (
+            <li key={i} className="text-xs text-slate-400 flex items-start gap-2">
+              <span className="text-orange-500 font-bold">{i + 1}.</span>
+              {step}
+            </li>
+          ))}
+        </ul>
       </div>
 
       {/* Filter Toggle */}

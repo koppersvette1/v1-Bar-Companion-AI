@@ -18,16 +18,12 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       
       {/* Mobile Header */}
       <header className="sticky top-0 z-50 bg-slate-900/80 backdrop-blur-md border-b border-slate-800 px-4 py-3 flex items-center justify-between md:hidden">
-        <Link href="/">
-          <a className="text-xl font-serif font-bold tracking-tight text-orange-500 flex items-center gap-2">
-            <Flame className="w-5 h-5 fill-orange-500/20" />
-            BarBuddy
-          </a>
+        <Link href="/" className="text-xl font-serif font-bold tracking-tight text-orange-500 flex items-center gap-2">
+          <Flame className="w-5 h-5 fill-orange-500/20" />
+          BarBuddy
         </Link>
-        <Link href="/settings">
-          <a className="p-2 rounded-full hover:bg-white/5 active:bg-white/10 transition-colors">
-            <Settings className="w-5 h-5 text-slate-400" />
-          </a>
+        <Link href="/settings" className="p-2 rounded-full hover:bg-white/5 active:bg-white/10 transition-colors">
+          <Settings className="w-5 h-5 text-slate-400" />
         </Link>
       </header>
 
@@ -37,64 +33,67 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         {/* Desktop Sidebar */}
         <aside className="hidden md:flex w-64 flex-col gap-6 p-6 sticky top-0 h-screen border-r border-slate-800 bg-slate-950/50">
           <div className="mb-2">
-            <Link href="/">
-              <a className="text-2xl font-serif font-bold text-orange-500 tracking-tight flex items-center gap-2">
-                <Flame className="w-7 h-7 fill-orange-500/20" />
-                BarBuddy
-              </a>
+            <Link href="/" className="text-2xl font-serif font-bold text-orange-500 tracking-tight flex items-center gap-2">
+              <Flame className="w-7 h-7 fill-orange-500/20" />
+              BarBuddy
             </Link>
             <p className="text-xs text-slate-500 mt-1 ml-9">Hybrid Intelligence</p>
           </div>
 
           <nav className="flex flex-col gap-1">
             {navItems.map((item) => (
-              <Link key={item.href} href={item.href}>
-                <a className={cn(
+              <Link 
+                key={item.href} 
+                href={item.href}
+                className={cn(
                   "flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 group font-medium text-sm",
                   location === item.href 
                     ? "bg-orange-500/10 text-orange-500 shadow-sm ring-1 ring-orange-500/20" 
                     : "text-slate-400 hover:text-slate-100 hover:bg-slate-900"
-                )}>
-                  <item.icon className={cn("w-4 h-4 transition-colors", location === item.href ? "text-orange-500" : "text-slate-500 group-hover:text-slate-300")} />
-                  {item.label}
-                </a>
+                )}
+              >
+                <item.icon className={cn("w-4 h-4 transition-colors", location === item.href ? "text-orange-500" : "text-slate-500 group-hover:text-slate-300")} />
+                {item.label}
               </Link>
             ))}
             
             <div className="my-2 border-t border-slate-800" />
             
-            <Link href="/people">
-               <a className={cn(
-                  "flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 group font-medium text-sm",
-                  location === "/people" 
-                    ? "bg-orange-500/10 text-orange-500" 
-                    : "text-slate-400 hover:text-slate-100 hover:bg-slate-900"
-                )}>
-                  <Users className="w-4 h-4 text-slate-500 group-hover:text-slate-300" />
-                  People
-               </a>
+            <Link 
+              href="/people"
+              className={cn(
+                "flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 group font-medium text-sm",
+                location === "/people" 
+                  ? "bg-orange-500/10 text-orange-500" 
+                  : "text-slate-400 hover:text-slate-100 hover:bg-slate-900"
+              )}
+            >
+              <Users className="w-4 h-4 text-slate-500 group-hover:text-slate-300" />
+              People
             </Link>
-            <Link href="/favorites">
-               <a className={cn(
-                  "flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 group font-medium text-sm",
-                  location === "/favorites" 
-                    ? "bg-orange-500/10 text-orange-500" 
-                    : "text-slate-400 hover:text-slate-100 hover:bg-slate-900"
-                )}>
-                  <BookHeart className="w-4 h-4 text-slate-500 group-hover:text-slate-300" />
-                  Favorites
-               </a>
+            <Link 
+              href="/favorites"
+              className={cn(
+                "flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 group font-medium text-sm",
+                location === "/favorites" 
+                  ? "bg-orange-500/10 text-orange-500" 
+                  : "text-slate-400 hover:text-slate-100 hover:bg-slate-900"
+              )}
+            >
+              <BookHeart className="w-4 h-4 text-slate-500 group-hover:text-slate-300" />
+              Favorites
             </Link>
-             <Link href="/settings">
-               <a className={cn(
-                  "flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 group font-medium text-sm",
-                  location === "/settings" 
-                    ? "bg-orange-500/10 text-orange-500" 
-                    : "text-slate-400 hover:text-slate-100 hover:bg-slate-900"
-                )}>
-                  <Settings className="w-4 h-4 text-slate-500 group-hover:text-slate-300" />
-                  Settings
-               </a>
+            <Link 
+              href="/settings"
+              className={cn(
+                "flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 group font-medium text-sm",
+                location === "/settings" 
+                  ? "bg-orange-500/10 text-orange-500" 
+                  : "text-slate-400 hover:text-slate-100 hover:bg-slate-900"
+              )}
+            >
+              <Settings className="w-4 h-4 text-slate-500 group-hover:text-slate-300" />
+              Settings
             </Link>
           </nav>
         </aside>
@@ -111,16 +110,18 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       <nav className="fixed bottom-0 left-0 right-0 bg-slate-900/90 backdrop-blur-xl border-t border-slate-800 pb-safe md:hidden z-50">
         <div className="flex items-center justify-around p-1">
           {navItems.map((item) => (
-            <Link key={item.href} href={item.href}>
-              <a className={cn(
+            <Link 
+              key={item.href} 
+              href={item.href}
+              className={cn(
                 "flex flex-col items-center gap-1 p-2 rounded-xl transition-all duration-200 min-w-[60px]",
                 location === item.href 
                   ? "text-orange-500" 
                   : "text-slate-500 active:text-slate-300"
-              )}>
-                <item.icon className={cn("w-6 h-6", location === item.href && "fill-current/20")} strokeWidth={location === item.href ? 2.5 : 2} />
-                <span className="text-[10px] font-medium">{item.label}</span>
-              </a>
+              )}
+            >
+              <item.icon className={cn("w-6 h-6", location === item.href && "fill-current/20")} strokeWidth={location === item.href ? 2.5 : 2} />
+              <span className="text-[10px] font-medium">{item.label}</span>
             </Link>
           ))}
         </div>
