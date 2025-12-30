@@ -1,5 +1,5 @@
 import { Link, useLocation } from "wouter";
-import { Home, Library, Martini, Flame, Users, BookHeart, Settings } from "lucide-react";
+import { Home, Library, Martini, Flame, Users, BookHeart, Settings, GraduationCap } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export default function Layout({ children }: { children: React.ReactNode }) {
@@ -10,7 +10,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     { href: "/inventory", icon: Library, label: "My Bar" },
     { href: "/cocktails", icon: Martini, label: "Drinks" },
     { href: "/smoker", icon: Flame, label: "Smoker" },
-    { href: "/people", icon: Users, label: "People" },
+    { href: "/education", icon: GraduationCap, label: "Learn" },
   ];
 
   return (
@@ -63,6 +63,17 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             
             <div className="my-2 border-t border-slate-800" />
             
+            <Link href="/people">
+               <a className={cn(
+                  "flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 group font-medium text-sm",
+                  location === "/people" 
+                    ? "bg-orange-500/10 text-orange-500" 
+                    : "text-slate-400 hover:text-slate-100 hover:bg-slate-900"
+                )}>
+                  <Users className="w-4 h-4 text-slate-500 group-hover:text-slate-300" />
+                  People
+               </a>
+            </Link>
             <Link href="/favorites">
                <a className={cn(
                   "flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 group font-medium text-sm",

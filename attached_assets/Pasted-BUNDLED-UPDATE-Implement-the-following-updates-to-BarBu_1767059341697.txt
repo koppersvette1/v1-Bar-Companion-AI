@@ -1,0 +1,174 @@
+BUNDLED UPDATE: Implement the following updates to BarBuddy in one cohesive release. Keep all existing core features working. Focus on new UI sections, seed data, and integration hooks into existing smoker/tuning/recommendation systems.
+
+========================================================
+1) EDUCATION TAB (NEW TOP-LEVEL TAB)
+========================================================
+Add a new top-level navigation tab: “Education”.
+
+Education sections/pages:
+A) Smoke Basics
+- Explain: smoke is aroma-first; lighter woods = elegance; stronger woods = bitterness risk.
+- Reinforce global smoked cocktail guardrails (smoke glass default, bitters reduction, dash caps, time ranges, rest time, lingering smoke too much).
+- Explain how smoke interacts with sweetness, acidity, bitterness, dilution, and spirit-forwardness.
+
+B) Wood Flavor Guide (dynamic, wood-by-wood)
+- For each wood in the user’s wood library (built-in + custom), show:
+  - Aroma notes (nose)
+  - Taste effect (palate)
+  - Best drink tags + best food tags
+  - Common mistakes + quick fixes
+  - “Try this” suggestions (1–2 drink style ideas)
+- Pull content from wood profile fields (purpose, tastingNotes, flavorTags, affinities) and add a short curated summary per intensity category.
+
+C) What to Look For (sensory checklist)
+- “Green flags” vs “Red flags”
+- Nose/palate/finish checklist: clean vs ashy, drying tannin vs harsh bitterness, flat vs lifted, spirit presence.
+
+D) Fix It (troubleshooting + one-tap actions)
+- Problems:
+  - Too smoky
+  - Too bitter
+  - Flat/dull
+  - Too sweet
+  - Too sharp/hot
+  - Can’t taste spirit
+  - Ashy/sooty
+- Each shows:
+  - Why it happens
+  - Fix options (specific and short)
+  - “Apply Fix” button:
+    - If there’s an active cocktail session, update suggested smoke settings and show updated steps
+    - Otherwise create a Tuned Variation with Before→After explanation (using existing tuning/variation system)
+
+E) Guided Experiments (mini flights)
+- Add 3–4 small guided tastings:
+  - Fruitwood flight (Apple vs Cherry vs Pear) on one base drink
+  - Clean vs Bold (Alder vs Hickory) with strict time caps + warnings
+  - Wine-like spritz smoke (Pear vs Grapevine) for wine-leaning drinkers
+  - Optional dessert flight (Maple vs Pecan)
+- Each experiment: setup, what to notice, how to log results, and “save preferred smoke settings”.
+
+Education integration links:
+- On wood picker: “Learn what this wood does”
+- On smoked toggle: “Smoke basics”
+- On troubleshooting chips: link to Fix It
+
+========================================================
+2) SMOKER DEVICE TYPES (CHIMNEY PRIMARY, CLOCHE SUPPORTED)
+========================================================
+Add Smoker Type support with device-aware instructions everywhere.
+
+A) Settings → Smoker
+Add Smoker Type selector (enum):
+- Chimney / Top-Mounted (Aged & Charred-style)  <-- default
+- Cloché / Dome
+- Smoking Gun (handheld)
+- Torch-only (chips + torch)
+
+Store per-user default: smokerType.
+Add per-session override via “Quick Switch” dropdown on:
+- Smoker page
+- Guided Smoke start screen
+
+B) Device-aware instructions
+Update:
+- Smoker page
+- Guided Smoker Mode steps
+- Education → Smoke Basics (device type mini section)
+to show correct wording for the selected device type.
+
+C) Chimney / Top-Mounted workflow (primary)
+- Emphasize smoke GLASS default.
+- Wood amount guidance: “small pinch / avoid overpacking”
+- Torch: “steady smoke flow, not roaring”
+- Capture timer uses wood profile + intensity slider within guardrails
+- Rest timer 20–30s
+- Pour + garnish; suggest citrus expression if flat
+- Add cleaning tip to avoid stale/ashy smoke.
+
+D) Cloché / Dome workflow
+- Ignite wood on tray/board, trap smoke under dome
+- Timer + rest
+- Avoid long capture; note small volume and quicker saturation
+
+E) Method restrictions remain
+- Smoke glass default
+- Garnish-only woods force garnish method
+- Smoke cocktail only for high-proof/stirred with warning
+- Enforce caps: Hickory ≤8s, Mesquite ≤7s, Oak ≤12s
+- Enforce bitters reduction and max dashes for smoked drinks
+
+========================================================
+3) WOOD LIBRARY EXPANSION + USER-ADDED WOODS + ADAPTIVE RECOMMENDATIONS
+========================================================
+A) Seed additional woods (editable defaults; enabled by default)
+Add these to the wood library with filled metadata (purpose, tastingNotes, flavorTags, affinities, beginnerSafe, intensity, time ranges):
+- Pear (light, 12–16s): elegant/floral; spritz/gin; foods: cheese/salads/light
+- Peach (light, 12–16s): stone-fruit; summer; foods: grilled chicken/fruit desserts
+- Walnut (medium-strong, 8–12s): nutty/dry/earthy; OF/amaro/vermouth; foods: roasted meats/mushrooms
+- Olive (medium, 8–12s): savory/mediterranean; martini/mezcal riffs; foods: lamb/grilled veg
+- Beech (light-medium, 10–14s): clean/neutral; versatile; foods: poultry/seafood/cheese
+- Grapevine (medium, 8–12s): tannic/structured; negroni/vermouth/wine-like; foods: charcuterie/steak
+- Rosemary (garnishOnly, 5–8s): herbal/pine; gin/citrus; foods: lamb/roasted veg
+- Cinnamon (garnishOnly, 5–8s): warm spice; bourbon/rum/winter; foods: desserts/holiday
+
+B) User-added wood profiles
+Ensure UI supports Add/Edit/Delete custom wood profiles with fields:
+- name, intensity, time min/max, purpose, tastingNotes, flavorTags,
+  bestWithDrinkTags, bestWithFoodTags, avoidWithDrinkTags, beginnerSafe, isInMyKit,
+  methodRestriction optional, optional costPerUse (only when cost tracking enabled)
+
+C) Adaptive “AI” scoring (deterministic + learning)
+- Update wood recommendation logic to include ALL woods (built-in + custom).
+- Score woods by tag matches (drink + meal + flavorTags) and person preferences.
+- Learning only re-ranks defaults within guardrails:
+  - Store per-person wood affinity based on made history ratings + feedback (too smoky/just right) + tuning actions.
+- Respect garnishOnly method restrictions automatically in UI and guided flow.
+
+========================================================
+4) GARNISH LIBRARY (NEW) + RECOMMENDATIONS + “FIX WITH GARNISH”
+========================================================
+Add a “Garnishes” section (either as part of Inventory or within Smoker/Settings) with a user-manageable garnish library.
+
+A) Seed a default garnish set:
+Citrus:
+- Orange peel, Lemon peel, Grapefruit peel, Lime peel
+Herbs:
+- Rosemary, Thyme, Mint, Sage
+Spices:
+- Cinnamon stick, Star anise, Clove, Nutmeg (grated)
+Fruits:
+- Luxardo/brandied cherry, Dehydrated orange wheel, Dehydrated lemon wheel, Blackberry
+Savory:
+- Olive, Cocktail onion (pickled)
+Rims:
+- Smoked salt, Demerara sugar, Chili-salt, Cocoa-sugar
+
+B) Garnish fields:
+- name
+- category (citrus/herb/spice/fruit/savory/rim)
+- flavorTags (bright, herbal, warm spice, savory, sweet accent, drying, etc.)
+- bestWithDrinkTags
+- bestWithWoods (optional)
+- smokeFriendly (boolean) and recommended smoke method/time if true
+- notes
+
+C) UI + behavior
+- On cocktail detail pages:
+  - Show recommended garnishes (ranked) based on drink tags + selected wood + person preferences
+  - Offer “Add garnish to my notes” and “Use for Fix”
+- On Fix It page:
+  - Add a “Fix with a garnish” section:
+    - Flat/dull → suggest citrus expression or herb
+    - Too smoky → fresh citrus oil/herb lift
+    - Too sweet → citrus oil + optional bitters (still respects caps)
+    - Too bitter/ashy → citrus oil + shorter smoke next time
+
+========================================================
+DELIVERABLE
+========================================================
+- A working Education tab with dynamic wood explanations, sensory checklist, Fix It one-tap actions, and guided experiments.
+- Smoker device types with chimney/top-mounted default and cloche supported, plus quick-switch per session.
+- Expanded wood library + user-added woods + adaptive recommendations + learning re-ranking within guardrails.
+- Garnish library with seeded garnishes, garnish recommendations, and garnish-based fixes.
+- No regressions to existing core flows (favorites, people profiles, tuning, smoked cocktail guardrails).

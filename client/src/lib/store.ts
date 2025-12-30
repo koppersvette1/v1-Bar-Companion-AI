@@ -6,6 +6,23 @@ import { v4 as uuidv4 } from 'uuid';
 
 export type Intensity = 'light' | 'medium' | 'bold' | 'very-strong';
 export type WoodName = string; // e.g., 'Apple', 'Hickory'
+export type SmokerDeviceType = 'chimney' | 'cloche' | 'smoking-gun' | 'torch-only';
+
+export type GarnishCategory = 'citrus' | 'herb' | 'spice' | 'fruit' | 'savory' | 'rim';
+
+export interface Garnish {
+  id: string;
+  name: string;
+  category: GarnishCategory;
+  flavorTags: string[];
+  bestWithDrinkTags: string[];
+  bestWithWoods?: string[];
+  smokeFriendly: boolean;
+  smokeSuggestion?: string;
+  notes?: string;
+  isInMyKit: boolean;
+  isCustom?: boolean;
+}
 
 export interface Wood {
   id: string;
@@ -100,6 +117,7 @@ export interface UserSettings {
   email: string;
   hasSmoker: boolean;
   smokerDeviceName?: string;
+  smokerType: SmokerDeviceType;
   defaultIntensity: Intensity;
   enableCostTracking: boolean;
   debugMode: boolean; // Dev only
@@ -110,6 +128,7 @@ export interface AppState {
   // Data
   inventory: InventoryItem[];
   woodLibrary: Wood[];
+  garnishLibrary: Garnish[];
   people: PersonProfile[];
   recipes: Recipe[];
   favorites: string[]; // Recipe IDs
@@ -127,6 +146,12 @@ export interface AppState {
   updateWood: (id: string, updates: Partial<Wood>) => void;
   addWood: (wood: Omit<Wood, 'id' | 'isCustom'>) => void;
   deleteWood: (woodId: string) => void;
+
+  // Garnishes
+  toggleGarnishKit: (garnishId: string) => void;
+  updateGarnish: (id: string, updates: Partial<Garnish>) => void;
+  addGarnish: (garnish: Omit<Garnish, 'id' | 'isCustom'>) => void;
+  deleteGarnish: (garnishId: string) => void;
 
   // People
   addPerson: (person: Omit<PersonProfile, 'id' | 'tasteWeights'>) => void;
@@ -167,6 +192,37 @@ const SEED_WOODS: Wood[] = [
   { id: 'wood-beech', name: 'Beech', intensity: 'medium', timeMin: 10, timeMax: 14, purpose: 'Clean/European/neutral', tastingNotes: 'Clean, european, neutral smoke', flavorTags: ['clean', 'neutral', 'european'], bestWithDrinkTags: ['versatile', 'gin', 'vodka', 'whiskey'], bestWithFoodTags: ['poultry', 'seafood', 'cheese'], avoidWithDrinkTags: [], beginnerSafe: true, isInMyKit: true },
   { id: 'wood-grapevine', name: 'Grapevine', intensity: 'medium', timeMin: 8, timeMax: 12, purpose: 'Wine-barrel adjacent', tastingNotes: 'Tannic, structured, wine-like', flavorTags: ['tannic', 'wine-like', 'structured'], bestWithDrinkTags: ['negroni', 'vermouth', 'wine-like', 'amaro'], bestWithFoodTags: ['charcuterie', 'steak', 'aged-cheese'], avoidWithDrinkTags: ['sweet', 'light'], beginnerSafe: true, isInMyKit: true },
   { id: 'wood-cinnamon', name: 'Cinnamon', intensity: 'light', timeMin: 5, timeMax: 8, purpose: 'Warm spice aroma', tastingNotes: 'Warm spice, holiday aroma', flavorTags: ['spicy', 'warm', 'holiday'], bestWithDrinkTags: ['bourbon', 'rum', 'winter', 'dessert'], bestWithFoodTags: ['desserts', 'holiday', 'apple-pie'], avoidWithDrinkTags: ['savory', 'bitter'], beginnerSafe: true, isInMyKit: false, methodRestriction: 'garnishOnly' },
+];
+
+const SEED_GARNISHES: Garnish[] = [
+  // Citrus
+  { id: 'garnish-orange-peel', name: 'Orange Peel', category: 'citrus', flavorTags: ['bright', 'citrus', 'aromatic'], bestWithDrinkTags: ['old-fashioned', 'negroni', 'whiskey', 'bitter'], smokeFriendly: true, smokeSuggestion: 'Express oils over smoked glass', isInMyKit: true },
+  { id: 'garnish-lemon-peel', name: 'Lemon Peel', category: 'citrus', flavorTags: ['bright', 'citrus', 'zesty'], bestWithDrinkTags: ['martini', 'sour', 'gin', 'vodka'], smokeFriendly: true, smokeSuggestion: 'Express oils to lift flat smoke', isInMyKit: true },
+  { id: 'garnish-grapefruit-peel', name: 'Grapefruit Peel', category: 'citrus', flavorTags: ['bitter', 'citrus', 'aromatic'], bestWithDrinkTags: ['paloma', 'spritz', 'tequila', 'mezcal'], smokeFriendly: true, isInMyKit: true },
+  { id: 'garnish-lime-peel', name: 'Lime Peel', category: 'citrus', flavorTags: ['bright', 'citrus', 'sharp'], bestWithDrinkTags: ['margarita', 'daiquiri', 'tiki', 'rum'], smokeFriendly: true, isInMyKit: true },
+  // Herbs
+  { id: 'garnish-rosemary', name: 'Rosemary Sprig', category: 'herb', flavorTags: ['herbal', 'piney', 'aromatic'], bestWithDrinkTags: ['gin', 'vodka', 'citrus'], bestWithWoods: ['wood-rosemary'], smokeFriendly: true, smokeSuggestion: 'Torch briefly for aroma', isInMyKit: true },
+  { id: 'garnish-thyme', name: 'Thyme Sprig', category: 'herb', flavorTags: ['herbal', 'earthy', 'subtle'], bestWithDrinkTags: ['gin', 'whiskey', 'lemon'], smokeFriendly: true, isInMyKit: true },
+  { id: 'garnish-mint', name: 'Fresh Mint', category: 'herb', flavorTags: ['fresh', 'cool', 'bright'], bestWithDrinkTags: ['mojito', 'julep', 'rum', 'bourbon'], smokeFriendly: false, notes: 'Use fresh; smoke dulls mint', isInMyKit: true },
+  { id: 'garnish-sage', name: 'Sage Leaf', category: 'herb', flavorTags: ['herbal', 'earthy', 'savory'], bestWithDrinkTags: ['whiskey', 'apple', 'fall'], smokeFriendly: true, smokeSuggestion: 'Brief torch adds depth', isInMyKit: false },
+  // Spices
+  { id: 'garnish-cinnamon-stick', name: 'Cinnamon Stick', category: 'spice', flavorTags: ['warm', 'spicy', 'sweet'], bestWithDrinkTags: ['bourbon', 'rum', 'winter', 'hot-toddy'], bestWithWoods: ['wood-cinnamon'], smokeFriendly: true, smokeSuggestion: 'Light torch for aroma only', isInMyKit: true },
+  { id: 'garnish-star-anise', name: 'Star Anise', category: 'spice', flavorTags: ['licorice', 'aromatic', 'exotic'], bestWithDrinkTags: ['whiskey', 'rum', 'winter', 'exotic'], smokeFriendly: true, isInMyKit: false },
+  { id: 'garnish-clove', name: 'Clove', category: 'spice', flavorTags: ['warm', 'pungent', 'aromatic'], bestWithDrinkTags: ['rum', 'tiki', 'winter', 'spiced'], smokeFriendly: false, notes: 'Overpowering when smoked', isInMyKit: false },
+  { id: 'garnish-nutmeg', name: 'Grated Nutmeg', category: 'spice', flavorTags: ['warm', 'nutty', 'aromatic'], bestWithDrinkTags: ['eggnog', 'flip', 'cream', 'winter'], smokeFriendly: false, notes: 'Grate fresh over drink', isInMyKit: true },
+  // Fruits
+  { id: 'garnish-luxardo-cherry', name: 'Luxardo Cherry', category: 'fruit', flavorTags: ['sweet', 'rich', 'cherry'], bestWithDrinkTags: ['manhattan', 'old-fashioned', 'whiskey'], smokeFriendly: true, smokeSuggestion: 'Drop in after smoking glass', isInMyKit: true },
+  { id: 'garnish-dehydrated-orange', name: 'Dehydrated Orange Wheel', category: 'fruit', flavorTags: ['citrus', 'concentrated', 'aromatic'], bestWithDrinkTags: ['negroni', 'old-fashioned', 'aperitif'], smokeFriendly: true, isInMyKit: true },
+  { id: 'garnish-dehydrated-lemon', name: 'Dehydrated Lemon Wheel', category: 'fruit', flavorTags: ['citrus', 'concentrated', 'bright'], bestWithDrinkTags: ['sour', 'collins', 'gin'], smokeFriendly: true, isInMyKit: false },
+  { id: 'garnish-blackberry', name: 'Fresh Blackberry', category: 'fruit', flavorTags: ['berry', 'sweet', 'tart'], bestWithDrinkTags: ['bramble', 'gin', 'bourbon', 'summer'], smokeFriendly: false, notes: 'Add after smoke settles', isInMyKit: false },
+  // Savory
+  { id: 'garnish-olive', name: 'Cocktail Olive', category: 'savory', flavorTags: ['savory', 'briny', 'salty'], bestWithDrinkTags: ['martini', 'gibson', 'vodka'], bestWithWoods: ['wood-olive'], smokeFriendly: true, isInMyKit: true },
+  { id: 'garnish-cocktail-onion', name: 'Pickled Cocktail Onion', category: 'savory', flavorTags: ['savory', 'tangy', 'briny'], bestWithDrinkTags: ['gibson', 'martini'], smokeFriendly: false, isInMyKit: false },
+  // Rims
+  { id: 'garnish-smoked-salt', name: 'Smoked Salt Rim', category: 'rim', flavorTags: ['savory', 'smoky', 'salty'], bestWithDrinkTags: ['margarita', 'bloody-mary', 'mezcal', 'bold'], smokeFriendly: true, notes: 'Complements wood smoke', isInMyKit: true },
+  { id: 'garnish-demerara-sugar', name: 'Demerara Sugar Rim', category: 'rim', flavorTags: ['sweet', 'caramel', 'rich'], bestWithDrinkTags: ['daiquiri', 'sour', 'rum'], smokeFriendly: true, isInMyKit: true },
+  { id: 'garnish-chili-salt', name: 'Chili-Salt Rim', category: 'rim', flavorTags: ['spicy', 'savory', 'bold'], bestWithDrinkTags: ['margarita', 'paloma', 'michelada', 'spicy'], smokeFriendly: true, isInMyKit: false },
+  { id: 'garnish-cocoa-sugar', name: 'Cocoa-Sugar Rim', category: 'rim', flavorTags: ['sweet', 'chocolate', 'dessert'], bestWithDrinkTags: ['espresso-martini', 'dessert', 'chocolate'], smokeFriendly: true, isInMyKit: false },
 ];
 
 const SEED_RECIPES: Recipe[] = [
@@ -231,6 +287,7 @@ export const useStore = create<AppState>()(
     (set, get) => ({
       inventory: [],
       woodLibrary: SEED_WOODS,
+      garnishLibrary: SEED_GARNISHES,
       people: [],
       recipes: SEED_RECIPES,
       favorites: [],
@@ -238,6 +295,7 @@ export const useStore = create<AppState>()(
       settings: {
         email: 'user@example.com',
         hasSmoker: false,
+        smokerType: 'chimney' as SmokerDeviceType,
         defaultIntensity: 'medium',
         enableCostTracking: false,
         debugMode: false,
@@ -269,6 +327,22 @@ export const useStore = create<AppState>()(
       })),
       deleteWood: (woodId) => set((state) => ({
         woodLibrary: state.woodLibrary.filter((w) => w.id !== woodId)
+      })),
+
+      // Garnishes
+      toggleGarnishKit: (garnishId) => set((state) => ({
+        garnishLibrary: state.garnishLibrary.map((g) =>
+          g.id === garnishId ? { ...g, isInMyKit: !g.isInMyKit } : g
+        )
+      })),
+      updateGarnish: (id, updates) => set((state) => ({
+        garnishLibrary: state.garnishLibrary.map((g) => (g.id === id ? { ...g, ...updates } : g))
+      })),
+      addGarnish: (garnish) => set((state) => ({
+        garnishLibrary: [...state.garnishLibrary, { ...garnish, id: `garnish-custom-${uuidv4()}`, isCustom: true }]
+      })),
+      deleteGarnish: (garnishId) => set((state) => ({
+        garnishLibrary: state.garnishLibrary.filter((g) => g.id !== garnishId)
       })),
 
       // People
@@ -333,6 +407,7 @@ export const useStore = create<AppState>()(
       reset: () => set({
         inventory: [],
         woodLibrary: SEED_WOODS,
+        garnishLibrary: SEED_GARNISHES,
         people: [],
         recipes: SEED_RECIPES,
         favorites: [],
@@ -340,6 +415,7 @@ export const useStore = create<AppState>()(
         settings: {
           email: 'user@example.com',
           hasSmoker: false,
+          smokerType: 'chimney' as SmokerDeviceType,
           defaultIntensity: 'medium',
           enableCostTracking: false,
           debugMode: false,

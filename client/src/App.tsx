@@ -7,7 +7,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import Layout from "@/components/layout";
 import NotFound from "@/pages/not-found";
 
-// Pages (I will create these next)
+// Pages
 import Home from "@/pages/home";
 import Inventory from "@/pages/inventory";
 import Cocktails from "@/pages/cocktails";
@@ -16,6 +16,7 @@ import People from "@/pages/people";
 import Settings from "@/pages/settings";
 import Favorites from "@/pages/favorites";
 import Pair from "@/pages/pair";
+import Education from "@/pages/education";
 
 function Router() {
   return (
@@ -29,6 +30,7 @@ function Router() {
         <Route path="/settings" component={Settings} />
         <Route path="/favorites" component={Favorites} />
         <Route path="/pair" component={Pair} />
+        <Route path="/education" component={Education} />
         <Route component={NotFound} />
       </Switch>
     </Layout>

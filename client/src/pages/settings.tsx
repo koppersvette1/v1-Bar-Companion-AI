@@ -1,8 +1,15 @@
-import { useStore, Wood, Intensity } from "@/lib/store";
-import { DollarSign, Calculator, Trash2, Flame, ChevronDown, ChevronUp, Plus, Check, X, Edit2, Wind } from "lucide-react";
+import { useStore, Wood, Intensity, SmokerDeviceType } from "@/lib/store";
+import { DollarSign, Calculator, Trash2, Flame, ChevronDown, ChevronUp, Plus, Check, X, Edit2, Wind, Leaf } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
+
+const SMOKER_DEVICE_OPTIONS: { value: SmokerDeviceType; label: string; description: string }[] = [
+  { value: 'chimney', label: 'Chimney / Top-Mounted', description: 'Aged & Charred style smoker' },
+  { value: 'cloche', label: 'Cloché / Dome', description: 'Trap smoke under glass dome' },
+  { value: 'smoking-gun', label: 'Smoking Gun', description: 'Handheld smoke infuser' },
+  { value: 'torch-only', label: 'Torch Only', description: 'Chips + torch method' },
+];
 
 const INTENSITY_OPTIONS: Intensity[] = ['light', 'medium', 'bold', 'very-strong'];
 
@@ -282,6 +289,31 @@ export default function Settings() {
                 <div className={cn("absolute top-1 left-1 w-4 h-4 bg-white rounded-full transition-transform", settings.hasSmoker ? "translate-x-6" : "translate-x-0")} />
               </button>
            </div>
+
+           {/* Smoker Device Type */}
+           {settings.hasSmoker && (
+             <div className="border-t border-slate-800 pt-4 mt-4">
+               <h4 className="text-sm font-bold text-white mb-3">Smoker Device Type</h4>
+               <div className="grid grid-cols-2 gap-2">
+                 {SMOKER_DEVICE_OPTIONS.map(option => (
+                   <button
+                     key={option.value}
+                     onClick={() => updateSettings({ smokerType: option.value })}
+                     className={cn(
+                       "p-3 rounded-xl border text-left transition-all",
+                       settings.smokerType === option.value
+                         ? "bg-orange-500/10 border-orange-500 text-orange-400"
+                         : "bg-slate-800/50 border-slate-700 text-slate-300 hover:border-slate-600"
+                     )}
+                     data-testid={`device-${option.value}`}
+                   >
+                     <p className="font-medium text-sm">{option.label}</p>
+                     <p className="text-[10px] text-slate-500 mt-0.5">{option.description}</p>
+                   </button>
+                 ))}
+               </div>
+             </div>
+           )}
 
            {/* Wood Library (Collapsible) */}
            {settings.hasSmoker && (
