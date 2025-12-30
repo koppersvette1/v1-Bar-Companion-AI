@@ -18,6 +18,8 @@ import {
   insertVariationSchema,
 } from "@shared/schema";
 import { z } from "zod";
+import { generateBatch } from "./generation";
+import type { BatchGenerationParams } from "@shared/generation-types";
 
 function getUserId(req: Request): string {
   const userId = (req.user as any)?.claims?.sub;
@@ -67,6 +69,30 @@ export async function registerRoutes(
       res.json(garnishes);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch garnishes" });
+    }
+  });
+
+  // ====== DRINK GENERATION (PUBLIC - uses built-in recipes for guests) ======
+  app.post("/api/generation/batch", async (req, res) => {
+    try {
+      const params: BatchGenerationParams = {
+        includeKidFriendly: Boolean(req.body.includeKidFriendly),
+        allowCaffeineInKidMocktails: Boolean(req.body.allowCaffeineInKidMocktails),
+        allowSpicyInKidMocktails: Boolean(req.body.allowSpicyInKidMocktails),
+        personId: req.body.personId,
+        occasion: req.body.occasion,
+        preferredTags: req.body.preferredTags,
+        excludeTags: req.body.excludeTags,
+      };
+
+      const recipes = await storage.getBuiltInRecipes();
+      
+      const result = generateBatch(recipes, params);
+      
+      res.json(result);
+    } catch (error: any) {
+      console.error("Generation error:", error);
+      res.status(500).json({ error: "Failed to generate drinks", message: error.message });
     }
   });
 
