@@ -114,6 +114,7 @@ export interface HistoryEntry {
 }
 
 export interface UserSettings {
+  name?: string;
   email: string;
   hasSmoker: boolean;
   smokerDeviceName?: string;
@@ -133,7 +134,7 @@ export interface AppState {
   recipes: Recipe[];
   favorites: string[]; // Recipe IDs
   history: HistoryEntry[];
-  settings: UserSettings;
+  userSettings: UserSettings;
 
   // Actions
   // Inventory
@@ -292,7 +293,7 @@ export const useStore = create<AppState>()(
       recipes: SEED_RECIPES,
       favorites: [],
       history: [],
-      settings: {
+      userSettings: {
         email: 'user@example.com',
         hasSmoker: false,
         smokerType: 'chimney' as SmokerDeviceType,
@@ -372,7 +373,7 @@ export const useStore = create<AppState>()(
       // History & Learning
       logHistory: (entry) => set((state) => {
         // Simple learning hook: Update user wood affinity if smoked
-        let newAffinity = { ...state.settings.woodAffinity };
+        let newAffinity = { ...state.userSettings.woodAffinity };
         if (entry.smoked && entry.rating && entry.rating >= 4) {
           const wood = entry.smoked.wood;
           newAffinity[wood] = (newAffinity[wood] || 0) + 1;
@@ -380,13 +381,13 @@ export const useStore = create<AppState>()(
 
         return {
           history: [...state.history, { ...entry, id: uuidv4() }],
-          settings: { ...state.settings, woodAffinity: newAffinity }
+          userSettings: { ...state.userSettings, woodAffinity: newAffinity }
         };
       }),
 
       // Settings
       updateSettings: (updates) => set((state) => ({
-        settings: { ...state.settings, ...updates }
+        userSettings: { ...state.userSettings, ...updates }
       })),
 
       // System
@@ -401,7 +402,7 @@ export const useStore = create<AppState>()(
           { id: uuidv4(), name: 'Campari', category: 'liqueur', quantity: 1, tags: ['amaro'], updatedAt: Date.now() },
           { id: uuidv4(), name: 'Gin', category: 'spirit', quantity: 1, tags: ['gin'], updatedAt: Date.now() },
         ],
-        settings: { ...state.settings, hasSmoker: true }
+        userSettings: { ...state.userSettings, hasSmoker: true }
       })),
       
       reset: () => set({
@@ -412,7 +413,7 @@ export const useStore = create<AppState>()(
         recipes: SEED_RECIPES,
         favorites: [],
         history: [],
-        settings: {
+        userSettings: {
           email: 'user@example.com',
           hasSmoker: false,
           smokerType: 'chimney' as SmokerDeviceType,

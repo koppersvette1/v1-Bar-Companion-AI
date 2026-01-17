@@ -300,7 +300,7 @@ function WoodFlavorGuide({ wood }: { wood: Wood }) {
 }
 
 export default function Education() {
-  const { woodLibrary, settings } = useStore();
+  const { woodLibrary, userSettings } = useStore();
   const enabledWoods = woodLibrary.filter(w => w.isInMyKit);
   const allWoods = woodLibrary;
 
@@ -383,11 +383,11 @@ export default function Education() {
                 </div>
               </div>
 
-              {settings.smokerType && (
+              {userSettings.smokerType && (
                 <div className="pt-4 border-t border-slate-800">
-                  <h3 className="text-sm font-semibold text-slate-200 mb-3 uppercase tracking-wide">Your Device: {settings.smokerType === 'chimney' ? 'Chimney / Top-Mounted' : settings.smokerType}</h3>
+                  <h3 className="text-sm font-semibold text-slate-200 mb-3 uppercase tracking-wide">Your Device: {userSettings.smokerType === 'chimney' ? 'Chimney / Top-Mounted' : userSettings.smokerType}</h3>
                   <div className="bg-slate-800/50 rounded-lg p-4 text-sm text-slate-300">
-                    {settings.smokerType === 'chimney' && (
+                    {userSettings.smokerType === 'chimney' && (
                       <ul className="space-y-2">
                         <li>• Use small pinch of wood chips—avoid overpacking</li>
                         <li>• Torch for steady smoke flow, not roaring flame</li>
@@ -395,21 +395,21 @@ export default function Education() {
                         <li>• Clean chamber regularly to avoid stale notes</li>
                       </ul>
                     )}
-                    {settings.smokerType === 'cloche' && (
+                    {userSettings.smokerType === 'cloche' && (
                       <ul className="space-y-2">
                         <li>• Ignite wood on tray/board, trap smoke under dome</li>
                         <li>• Timer + rest—small volume saturates quickly</li>
                         <li>• Avoid long capture times</li>
                       </ul>
                     )}
-                    {settings.smokerType === 'smoking-gun' && (
+                    {userSettings.smokerType === 'smoking-gun' && (
                       <ul className="space-y-2">
                         <li>• Direct infusion—control flow with tube placement</li>
                         <li>• Shorter times than chimney (smoke is more concentrated)</li>
                         <li>• Good for quick infusions and travel</li>
                       </ul>
                     )}
-                    {settings.smokerType === 'torch-only' && (
+                    {userSettings.smokerType === 'torch-only' && (
                       <ul className="space-y-2">
                         <li>• Place chips in heatproof container</li>
                         <li>• Brief torch, capture smoke in inverted glass</li>

@@ -48,7 +48,7 @@ const DEVICE_INSTRUCTIONS: Record<SmokerDeviceType, { title: string; steps: stri
 };
 
 export default function Smoker() {
-  const { woodLibrary, toggleWoodKit, settings, updateSettings } = useStore();
+  const { woodLibrary, toggleWoodKit, userSettings, updateSettings } = useStore();
   const [activeWood, setActiveWood] = useState<string | null>(null);
   const [timer, setTimer] = useState(0);
   const [phase, setPhase] = useState<'idle' | 'smoking' | 'resting'>('idle');
@@ -92,7 +92,7 @@ export default function Smoker() {
     setActiveWood(null);
   };
 
-  if (!settings.hasSmoker) {
+  if (!userSettings.hasSmoker) {
     return (
       <div className="flex flex-col items-center justify-center h-[60vh] text-center px-4">
         <div className="w-24 h-24 bg-orange-500/10 rounded-full flex items-center justify-center mb-6">
@@ -155,14 +155,14 @@ export default function Smoker() {
         <div className="flex items-center justify-between mb-3">
           <h3 className="text-sm font-bold text-white flex items-center gap-2">
             <Flame className="w-4 h-4 text-orange-500" />
-            {DEVICE_INSTRUCTIONS[settings.smokerType || 'chimney'].title}
+            {DEVICE_INSTRUCTIONS[userSettings.smokerType || 'chimney'].title}
           </h3>
           <Link href="/settings" className="text-xs text-slate-500 hover:text-orange-400" data-testid="link-change-device">
             Change device
           </Link>
         </div>
         <ul className="space-y-1.5">
-          {DEVICE_INSTRUCTIONS[settings.smokerType || 'chimney'].steps.map((step, i) => (
+          {DEVICE_INSTRUCTIONS[userSettings.smokerType || 'chimney'].steps.map((step, i) => (
             <li key={i} className="text-xs text-slate-400 flex items-start gap-2">
               <span className="text-orange-500 font-bold">{i + 1}.</span>
               {step}

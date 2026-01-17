@@ -128,7 +128,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             {user ? (
               <>
                 <div className="px-4 py-2 text-sm text-slate-400">
-                  {user.email || user.firstName}
+                  {user.name || user.email}
                 </div>
                 <Button
                   variant="ghost"
