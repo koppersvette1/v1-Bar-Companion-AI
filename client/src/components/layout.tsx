@@ -3,6 +3,8 @@ import { Home, Library, Martini, Flame, Users, BookHeart, Settings, GraduationCa
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
+import { useSwipeNavigation } from "@/hooks/use-swipe-navigation";
+import { hapticClick } from "@/lib/haptics";
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   const [location] = useLocation();
@@ -15,6 +17,12 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     { href: "/smoker", icon: Flame, label: "Smoker" },
     { href: "/flights", icon: Beaker, label: "Flights" },
   ];
+
+  // Enable swipe navigation between main routes
+  useSwipeNavigation({
+    routes: navItems.map(item => item.href),
+    threshold: 50,
+  });
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans selection:bg-orange-500 selection:text-white pb-24 md:pb-0">
@@ -167,6 +175,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             <Link
               key={item.href}
               href={item.href}
+              onClick={() => hapticClick()}
               className={cn(
                 "flex flex-col items-center gap-1 p-3 rounded-xl transition-all duration-150 min-w-[64px] min-h-[56px] active:scale-95 active:bg-slate-800/50",
                 location === item.href

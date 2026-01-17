@@ -1,15 +1,28 @@
 {
-  "name": "BarBuddy",
+  "name": "BarBuddy - Cocktail Companion",
   "short_name": "BarBuddy",
+  "description": "Master the art of smoked cocktails. Your intelligent home bar assistant.",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
+  "orientation": "portrait-primary",
   "background_color": "#0f172a",
-  "theme_color": "#f97316",
+  "theme_color": "#ea580c",
+  "categories": ["food", "lifestyle"],
   "icons": [
     {
       "src": "/favicon.png",
       "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/favicon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
     }
-  ]
+  ],
+  "screenshots": [],
+  "prefer_related_applications": false
 }
