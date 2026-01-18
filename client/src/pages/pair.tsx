@@ -9,12 +9,12 @@ export default function Pair() {
   const [input, setInput] = useState("");
   const [result, setResult] = useState<any>(null);
   
-  const { woodLibrary, settings } = useStore();
+  const { woodLibrary, userSettings } = useStore();
 
   const handlePair = () => {
     if(!input) return;
     const res = generatePairing(input, mode, {
-      hasSmoker: settings.hasSmoker,
+      hasSmoker: userSettings.hasSmoker,
       availableWoods: woodLibrary.filter(w => w.isInMyKit)
     });
     setResult(res);

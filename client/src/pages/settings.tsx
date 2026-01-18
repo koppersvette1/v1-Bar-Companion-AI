@@ -193,7 +193,7 @@ function WoodEditor({ wood, onSave, onCancel }: { wood?: Partial<Wood>; onSave: 
 }
 
 export default function Settings() {
-  const { settings, updateSettings, reset, woodLibrary, toggleWoodKit, updateWood, addWood, deleteWood, garnishLibrary, toggleGarnishKit, addGarnish, deleteGarnish } = useStore();
+  const { userSettings, updateSettings, reset, woodLibrary, toggleWoodKit, updateWood, addWood, deleteWood, garnishLibrary, toggleGarnishKit, addGarnish, deleteGarnish } = useStore();
   const { toast } = useToast();
   const [woodLibraryExpanded, setWoodLibraryExpanded] = useState(false);
   const [garnishLibraryExpanded, setGarnishLibraryExpanded] = useState(false);
@@ -248,18 +248,18 @@ export default function Settings() {
                  </p>
               </div>
               <button 
-                onClick={() => updateSettings({ enableCostTracking: !settings.enableCostTracking })}
+                onClick={() => updateSettings({ enableCostTracking: !userSettings.enableCostTracking })}
                 className={cn(
                   "w-12 h-6 rounded-full relative transition-colors flex-shrink-0 mt-1",
-                  settings.enableCostTracking ? "bg-green-500" : "bg-slate-700"
+                  userSettings.enableCostTracking ? "bg-green-500" : "bg-slate-700"
                 )}
                 data-testid="toggle-cost-tracking"
               >
-                <div className={cn("absolute top-1 left-1 w-4 h-4 bg-white rounded-full transition-transform", settings.enableCostTracking ? "translate-x-6" : "translate-x-0")} />
+                <div className={cn("absolute top-1 left-1 w-4 h-4 bg-white rounded-full transition-transform", userSettings.enableCostTracking ? "translate-x-6" : "translate-x-0")} />
               </button>
            </div>
            
-           {settings.enableCostTracking && (
+           {userSettings.enableCostTracking && (
              <div className="bg-green-500/5 border border-green-500/10 rounded-lg p-3 text-xs text-green-400 flex gap-2">
                <Calculator className="w-4 h-4" />
                Prices will now appear in inventory and recipe breakdowns.
@@ -280,19 +280,19 @@ export default function Settings() {
                 </div>
               </div>
                <button 
-                onClick={() => updateSettings({ hasSmoker: !settings.hasSmoker })}
+                onClick={() => updateSettings({ hasSmoker: !userSettings.hasSmoker })}
                 className={cn(
                   "w-12 h-6 rounded-full relative transition-colors flex-shrink-0",
-                  settings.hasSmoker ? "bg-orange-500" : "bg-slate-700"
+                  userSettings.hasSmoker ? "bg-orange-500" : "bg-slate-700"
                 )}
                 data-testid="toggle-smoker"
               >
-                <div className={cn("absolute top-1 left-1 w-4 h-4 bg-white rounded-full transition-transform", settings.hasSmoker ? "translate-x-6" : "translate-x-0")} />
+                <div className={cn("absolute top-1 left-1 w-4 h-4 bg-white rounded-full transition-transform", userSettings.hasSmoker ? "translate-x-6" : "translate-x-0")} />
               </button>
            </div>
 
            {/* Smoker Device Type */}
-           {settings.hasSmoker && (
+           {userSettings.hasSmoker && (
              <div className="border-t border-slate-800 pt-4 mt-4">
                <h4 className="text-sm font-bold text-white mb-3">Smoker Device Type</h4>
                <div className="grid grid-cols-2 gap-2">
@@ -302,7 +302,7 @@ export default function Settings() {
                      onClick={() => updateSettings({ smokerType: option.value })}
                      className={cn(
                        "p-3 rounded-xl border text-left transition-all",
-                       settings.smokerType === option.value
+                       userSettings.smokerType === option.value
                          ? "bg-orange-500/10 border-orange-500 text-orange-400"
                          : "bg-slate-800/50 border-slate-700 text-slate-300 hover:border-slate-600"
                      )}
@@ -317,7 +317,7 @@ export default function Settings() {
            )}
 
            {/* Wood Library (Collapsible) */}
-           {settings.hasSmoker && (
+           {userSettings.hasSmoker && (
              <div className="border-t border-slate-800 pt-4 mt-4">
                <button 
                  onClick={() => setWoodLibraryExpanded(!woodLibraryExpanded)}

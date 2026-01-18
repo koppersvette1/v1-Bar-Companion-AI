@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils";
 
 export default function Onboarding({ onComplete }: { onComplete: () => void }) {
   const [step, setStep] = useState(0);
-  const { loadDemoBar } = useStore();
+  const { loadSeedData } = useStore();
 
   const steps = [
     {
@@ -39,7 +39,7 @@ export default function Onboarding({ onComplete }: { onComplete: () => void }) {
   };
 
   const handleLoadDemo = () => {
-    loadDemoBar();
+    loadSeedData();
     onComplete();
   };
 

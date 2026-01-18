@@ -1,4 +1,4 @@
-import { Item, Wood, UserSettings } from "@/lib/store";
+import { InventoryItem, Wood, UserSettings } from "@/lib/store";
 import cocktailImage from '@assets/generated_images/classic_old_fashioned_cocktail.png';
 
 export interface Recipe {
@@ -135,19 +135,18 @@ function parseVolume(ingString: string): number {
 }
 
 // Helper: Calculate cost per oz of an item
-function getCostPerOz(item: Item): number | null {
-  if (!item.price || !item.bottleSize) return null;
-  
-  let sizeInOz = item.bottleSize;
-  if (item.bottleUnit === 'ml') sizeInOz = item.bottleSize / 29.5735;
-  if (item.bottleUnit === 'l') sizeInOz = (item.bottleSize * 1000) / 29.5735;
-  
+function getCostPerOz(item: InventoryItem): number | null {
+  if (!item.price || !item.bottleSizeMl) return null;
+
+  // Convert ml to oz
+  const sizeInOz = item.bottleSizeMl / 29.5735;
+
   if (sizeInOz <= 0) return null;
   return item.price / sizeInOz;
 }
 
 export function generateRecipes(
-  inventory: Item[],
+  inventory: InventoryItem[],
   settings: UserSettings,
   preferences: { baseSpirit?: string; style?: string; smoked?: boolean }
 ): Recipe[] {

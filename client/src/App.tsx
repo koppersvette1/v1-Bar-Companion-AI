@@ -8,8 +8,10 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import Layout from "@/components/layout";
 import NotFound from "@/pages/not-found";
 import MigrationModal from "@/components/migration-modal";
+import PWAInstallPrompt from "@/components/pwa-install-prompt";
 import { useAuth } from "@/hooks/use-auth";
 import { useGuestStore } from "@/lib/guest-store";
+import { registerServiceWorker } from "@/lib/register-sw";
 
 import Home from "@/pages/home";
 import Inventory from "@/pages/inventory";
@@ -74,11 +76,19 @@ function Router() {
 }
 
 function App() {
+  // Register service worker for offline support
+  useEffect(() => {
+    if (process.env.NODE_ENV === 'production') {
+      registerServiceWorker();
+    }
+  }, []);
+
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <Toaster />
         <MigrationCheck />
+        <PWAInstallPrompt />
         <Router />
       </TooltipProvider>
     </QueryClientProvider>

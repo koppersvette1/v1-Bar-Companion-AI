@@ -138,9 +138,33 @@
   .mask-fade-right {
     mask-image: linear-gradient(to right, black 85%, transparent 100%);
   }
+
+  /* Mobile-First Safe Area Insets */
   .pb-safe {
     padding-bottom: env(safe-area-inset-bottom);
   }
+  .pt-safe {
+    padding-top: env(safe-area-inset-top);
+  }
+  .pl-safe {
+    padding-left: env(safe-area-inset-left);
+  }
+  .pr-safe {
+    padding-right: env(safe-area-inset-right);
+  }
+  .safe-area-inset-top {
+    padding-top: max(1rem, env(safe-area-inset-top));
+  }
+  .safe-area-inset-bottom {
+    padding-bottom: max(1rem, env(safe-area-inset-bottom));
+  }
+
+  /* Touch-Optimized Interactions */
+  .touch-target {
+    min-width: 44px;
+    min-height: 44px;
+  }
+
   /* Hide scrollbar */
   .scrollbar-none {
     -ms-overflow-style: none;
@@ -148,5 +172,25 @@
   }
   .scrollbar-none::-webkit-scrollbar {
     display: none;
+  }
+}
+
+/* Mobile-First Typography Improvements */
+@layer base {
+  @media (max-width: 768px) {
+    html {
+      /* Slightly larger base size for mobile readability */
+      font-size: 16px;
+    }
+
+    /* Prevent zoom on input focus (iOS) */
+    input[type="text"],
+    input[type="email"],
+    input[type="password"],
+    input[type="number"],
+    textarea,
+    select {
+      font-size: 16px !important;
+    }
   }
 }
