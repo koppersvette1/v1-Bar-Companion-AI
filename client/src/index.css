@@ -58,8 +58,9 @@
   --color-sidebar-ring: hsl(var(--sidebar-ring));
 }
 
-/* DARK MODE DEFAULT (Speakeasy Theme) */
-:root {
+/* DARK MODE DEFAULT (Speakeasy Theme / Classic) */
+:root,
+:root.classic {
   /* Deep Slate / Midnight Blue Base */
   --background: 222 47% 11%;
   --foreground: 210 40% 98%;
@@ -67,7 +68,7 @@
   /* Darker cards */
   --card: 222 47% 13%;
   --card-foreground: 210 40% 98%;
-  
+
   --popover: 222 47% 11%;
   --popover-foreground: 210 40% 98%;
 
@@ -110,6 +111,60 @@
   --sidebar-accent-foreground: 240 5% 96%;
   --sidebar-border: 217 33% 20%;
   --sidebar-ring: 35 90% 50%;
+}
+
+/* SMOKER LAB THEME - Warm, Smoky, Earthy */
+:root.smoker-lab {
+  /* Deep Charcoal/Smoke Base */
+  --background: 24 15% 8%;
+  --foreground: 30 20% 95%;
+
+  /* Ash-toned cards */
+  --card: 20 18% 12%;
+  --card-foreground: 30 20% 95%;
+
+  --popover: 24 15% 8%;
+  --popover-foreground: 30 20% 95%;
+
+  /* Ember Orange Primary */
+  --primary: 16 90% 58%;
+  --primary-foreground: 0 0% 100%;
+
+  /* Smoked Wood Secondary */
+  --secondary: 25 20% 18%;
+  --secondary-foreground: 30 20% 95%;
+
+  /* Smoke Muted */
+  --muted: 20 12% 22%;
+  --muted-foreground: 30 10% 60%;
+
+  /* Burning Amber Accent */
+  --accent: 33 85% 50%;
+  --accent-foreground: 0 0% 100%;
+
+  --destructive: 0 75% 45%;
+  --destructive-foreground: 0 0% 100%;
+
+  --border: 20 15% 20%;
+  --input: 20 15% 20%;
+  --ring: 16 90% 58%;
+
+  --radius: 0.75rem;
+
+  --chart-1: 16 90% 58%;
+  --chart-2: 33 85% 50%;
+  --chart-3: 45 90% 60%;
+  --chart-4: 15 75% 45%;
+  --chart-5: 0 65% 55%;
+
+  --sidebar: 24 20% 6%;
+  --sidebar-foreground: 30 20% 90%;
+  --sidebar-primary: 16 90% 58%;
+  --sidebar-primary-foreground: 0 0% 100%;
+  --sidebar-accent: 25 18% 15%;
+  --sidebar-accent-foreground: 30 20% 90%;
+  --sidebar-border: 20 15% 18%;
+  --sidebar-ring: 16 90% 58%;
 }
 
 @layer base {

@@ -1,6 +1,7 @@
 import { useStore, Wood, Intensity, SmokerDeviceType } from "@/lib/store";
-import { DollarSign, Calculator, Trash2, Flame, ChevronDown, ChevronUp, Plus, Check, X, Edit2, Wind, Leaf } from "lucide-react";
+import { DollarSign, Calculator, Trash2, Flame, ChevronDown, ChevronUp, Plus, Check, X, Edit2, Wind, Leaf, Palette } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useTheme } from "@/hooks/use-theme";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
 
@@ -195,6 +196,7 @@ function WoodEditor({ wood, onSave, onCancel }: { wood?: Partial<Wood>; onSave: 
 export default function Settings() {
   const { userSettings, updateSettings, reset, woodLibrary, toggleWoodKit, updateWood, addWood, deleteWood, garnishLibrary, toggleGarnishKit, addGarnish, deleteGarnish } = useStore();
   const { toast } = useToast();
+  const { theme, setTheme } = useTheme();
   const [woodLibraryExpanded, setWoodLibraryExpanded] = useState(false);
   const [garnishLibraryExpanded, setGarnishLibraryExpanded] = useState(false);
   const [showAddWood, setShowAddWood] = useState(false);
@@ -234,7 +236,50 @@ export default function Settings() {
       </div>
 
       <div className="space-y-6">
-        
+
+        {/* Theme Selection */}
+        <div className="p-6 bg-slate-900 border border-slate-800 rounded-2xl space-y-4">
+          <div className="flex items-start gap-4">
+            <div className="p-3 bg-purple-500/10 rounded-xl text-purple-500">
+              <Palette className="w-6 h-6" />
+            </div>
+            <div className="flex-1">
+              <h3 className="text-lg font-bold text-white">Theme</h3>
+              <p className="text-sm text-slate-400 mt-1">
+                Choose your visual style
+              </p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <button
+              onClick={() => setTheme('classic')}
+              className={cn(
+                "p-4 rounded-xl border-2 transition-all text-left",
+                theme === 'classic'
+                  ? "border-orange-500 bg-orange-500/10"
+                  : "border-slate-700 bg-slate-800/50 hover:border-slate-600"
+              )}
+            >
+              <div className="font-bold text-white mb-1">Classic</div>
+              <div className="text-xs text-slate-400">Gold & midnight blue</div>
+            </button>
+
+            <button
+              onClick={() => setTheme('smoker-lab')}
+              className={cn(
+                "p-4 rounded-xl border-2 transition-all text-left",
+                theme === 'smoker-lab'
+                  ? "border-orange-500 bg-orange-500/10"
+                  : "border-slate-700 bg-slate-800/50 hover:border-slate-600"
+              )}
+            >
+              <div className="font-bold text-white mb-1">Smoker Lab</div>
+              <div className="text-xs text-slate-400">Warm smoke & embers</div>
+            </button>
+          </div>
+        </div>
+
         {/* Cost Tracking */}
         <div className="p-6 bg-slate-900 border border-slate-800 rounded-2xl space-y-4">
            <div className="flex items-start gap-4">

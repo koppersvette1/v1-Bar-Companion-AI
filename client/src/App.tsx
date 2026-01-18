@@ -12,6 +12,7 @@ import PWAInstallPrompt from "@/components/pwa-install-prompt";
 import { useAuth } from "@/hooks/use-auth";
 import { useGuestStore } from "@/lib/guest-store";
 import { registerServiceWorker } from "@/lib/register-sw";
+import { useTheme } from "@/hooks/use-theme";
 
 import Home from "@/pages/home";
 import Inventory from "@/pages/inventory";
@@ -76,6 +77,9 @@ function Router() {
 }
 
 function App() {
+  // Initialize theme
+  useTheme();
+
   // Register service worker for offline support
   useEffect(() => {
     if (process.env.NODE_ENV === 'production') {
